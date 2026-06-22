@@ -179,20 +179,21 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, size = "md" }) => {
   if (!isOpen) return null;
+  const widths = { sm: "max-w-md", md: "max-w-lg", lg: "max-w-2xl", xl: "max-w-3xl" };
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" onClick={onClose} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto animate-fadeIn" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center justify-between p-5 border-b border-gray-100">
+        <div className={`bg-white rounded-2xl shadow-2xl w-full ${widths[size] || widths.md} max-h-[90vh] overflow-y-auto animate-fadeIn`} onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10 rounded-t-2xl">
             <h3 className="text-base font-extrabold text-gray-900">{title}</h3>
             <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all">
               <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="p-5">{children}</div>
+          <div className="p-6">{children}</div>
         </div>
       </div>
     </>
@@ -828,9 +829,24 @@ const StockBadge = ({ stock, threshold }) => {
                   <h3 className="text-2xl font-extrabold text-gray-900">পণ্য ম্যানেজমেন্ট</h3>
                   <p className="text-sm text-gray-500 mt-1">পণ্য যোগ, সম্পাদনা, মূল্য পরিবর্তন ও পরিচালনা</p>
                 </div>
-                <button onClick={() => { setEditProduct({ name: "", model: "", price: "", originalPrice: "", category: "", subcategory: "", description: "", specs: "", stock: 10, lowStockThreshold: 5, isActive: true }); setShowAddProduct(true); }} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-vision-blue/25 transition-all">
-                  <Plus className="w-4 h-4" /> নতুন পণ্য যোগ করুন
-                </button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button onClick={async () => {
+                    if (!window.confirm("ডেমো পণ্যগুলো Cloudinary তে আপলোড করে MongoDB তে সেভ করবেন? এটা কিছুক্ষণ সময় নেবে।")) return;
+                    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+                    const token = localStorage.getItem("token");
+                    try {
+                      const res = await fetch(`${API_URL}/admin/seed-products`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+                      const d = await res.json();
+                      alert(d.message || (res.ok ? "✅ সম্পন্ন!" : "❌ সমস্যা হয়েছে"));
+                      if (res.ok) loadProducts();
+                    } catch { alert("❌ সংযোগ ব্যর্থ — সার্ভার চালু আছে কিনা দেখুন"); }
+                  }} className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl text-xs font-bold hover:border-vision-blue hover:text-vision-blue transition-all">
+                    <RefreshCcw className="w-3.5 h-3.5" /> ডেমো ইম্পোর্ট
+                  </button>
+                  <button onClick={() => { setEditProduct({ name: "", model: "", price: "", originalPrice: "", category: "", subcategory: "", description: "", specs: "", stock: 10, lowStockThreshold: 5, isActive: true, color: "#0b3474", priceOptions: [] }); setShowAddProduct(true); }} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-vision-blue/25 transition-all">
+                    <Plus className="w-4 h-4" /> নতুন পণ্য
+                  </button>
+                </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-200 px-4 py-2 flex-1 min-w-[200px]">
@@ -906,7 +922,7 @@ const StockBadge = ({ stock, threshold }) => {
                 </table>
               </div>
               {/* Add/Edit Product Modal */}
-              <Modal isOpen={showAddProduct} onClose={() => { setShowAddProduct(false); setEditProduct(null); }} title={editProduct?.id ? "পণ্য সম্পাদনা" : "নতুন পণ্য"}>
+              <Modal isOpen={showAddProduct} onClose={() => { setShowAddProduct(false); setEditProduct(null); }} title={editProduct?.id ? "পণ্য সম্পাদনা করুন" : "নতুন পণ্য যোগ করুন"} size="xl">
                 {editProduct && (
                   <ProductForm product={editProduct} categories={productCategories} onSave={handleSaveProduct} onCancel={() => { setShowAddProduct(false); setEditProduct(null); }} isEdit={!!editProduct?.id} />
                 )}
@@ -1385,20 +1401,40 @@ const StockBadge = ({ stock, threshold }) => {
 };
 
 // ============================================================
-// Product Form Component
+// Product Form Component — Redesigned
 // ============================================================
+const SectionLabel = ({ children }) => (
+  <p className="text-[10px] font-extrabold uppercase tracking-widest text-vision-blue mb-3 flex items-center gap-2">
+    <span className="w-4 h-0.5 bg-vision-blue/30 rounded-full" />
+    {children}
+  </p>
+);
+
+const FormField = ({ label, required, children }) => (
+  <div className="space-y-1.5">
+    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
+      {label}{required && <span className="text-red-400 ml-0.5">*</span>}
+    </label>
+    {children}
+  </div>
+);
+
+const inputCls = "w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-vision-blue/60 focus:ring-4 focus:ring-vision-blue/5 transition bg-white placeholder:text-gray-300";
+
 const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
   const [form, setForm] = useState(product);
   const [saving, setSaving] = useState(false);
-  const [imageFiles, setImageFiles] = useState([]);
+  const [mainPreview, setMainPreview] = useState(product?.image || "");
+  const [galleryFiles, setGalleryFiles] = useState([]);
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    setImageFiles(prev => [...prev, ...files]);
+  const handleMainImage = (e) => {
+    const file = e.target.files?.[0];
+    if (file) { setForm(f => ({ ...f, imageFile: file })); setMainPreview(URL.createObjectURL(file)); }
   };
 
-  const removeImage = (index) => {
-    setImageFiles(prev => prev.filter((_, i) => i !== index));
+  const handleGallery = (e) => {
+    const files = Array.from(e.target.files || []);
+    setGalleryFiles(prev => [...prev, ...files]);
   };
 
   const handleSubmit = async (e) => {
@@ -1407,176 +1443,211 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
     try {
       const fd = new FormData();
       fd.append("id", form.id || "");
-      fd.append("name", form.name);
-      fd.append("model", form.model);
-      fd.append("price", form.price);
+      fd.append("name", form.name || "");
+      fd.append("model", form.model || "");
+      fd.append("price", form.price || 0);
       fd.append("originalPrice", form.originalPrice || 0);
-      fd.append("category", form.category);
-      fd.append("subcategory", form.subcategory);
+      fd.append("category", form.category || "");
+      fd.append("subcategory", form.subcategory || "");
       fd.append("description", form.description || "");
       fd.append("specs", form.specs || "");
       fd.append("visual", form.visual || "");
       fd.append("color", form.color || "#0b3474");
-      fd.append("stock", form.stock !== undefined ? form.stock : 10);
-      fd.append("lowStockThreshold", form.lowStockThreshold !== undefined ? form.lowStockThreshold : 5);
+      fd.append("stock", form.stock ?? 10);
+      fd.append("lowStockThreshold", form.lowStockThreshold ?? 5);
       fd.append("isActive", form.isActive !== false ? "true" : "false");
       fd.append("featured", form.featured ? "true" : "false");
       fd.append("isNewArrival", form.isNewArrival ? "true" : "false");
       fd.append("isBestSeller", form.isBestSeller ? "true" : "false");
       fd.append("priceOptions", JSON.stringify(form.priceOptions || []));
-
-      // Main image
       if (form.imageFile) fd.append("image", form.imageFile);
-      
-      // Multiple images
-      imageFiles.forEach((file) => {
-        fd.append("images", file);
-      });
+      galleryFiles.forEach(f => fd.append("images", f));
 
       const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
       const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
       const url = isEdit ? `${API_URL}/products/${form.id}` : `${API_URL}/products`;
-      const method = isEdit ? "PUT" : "POST";
-
-      const res = await fetch(url, { method, headers, body: fd });
-      if (!res.ok) throw new Error("Failed to save product");
+      const res = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: token ? { Authorization: `Bearer ${token}` } : {}, body: fd });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || "সেভ করতে সমস্যা হয়েছে"); }
       onSave();
     } catch (error) {
-      console.error(error);
-      alert("পণ্য সেভ করতে সমস্যা হয়েছে: " + error.message);
+      alert("❌ " + error.message);
     }
     setSaving(false);
   };
 
   const selectedCategory = categories.find(c => c.id === form.category);
   const subcategories = selectedCategory?.subcategories || [];
-
-  const fields = [
-    { key: "name", label: "পণ্যের নাম", type: "text", required: true },
-    { key: "model", label: "মডেল", type: "text", required: true },
-    { key: "price", label: "বিক্রয় মূল্য", type: "number", required: true },
-    { key: "originalPrice", label: "মূল মূল্য (যদি ডিসকাউন্ট থাকে)", type: "number", required: false },
-    { key: "description", label: "বিবরণ", type: "textarea", required: false },
-    { key: "specs", label: "স্পেসিফিকেশন (কমা দিয়ে আলাদা করুন)", type: "text", required: false },
-    { key: "visual", label: "ভিজুয়াল টাইপ", type: "text", required: false },
-    { key: "stock", label: "স্টক পরিমাণ", type: "number", required: false },
-    { key: "lowStockThreshold", label: "লো স্টক থ্রেশহোল্ড", type: "number", required: false },
-  ];
+  const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto">
-      <label className="space-y-1.5">
-        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">প্রধান ছবি</span>
-        <input type="file" accept="image/*" onChange={(e) => setForm({ ...form, imageFile: e.target.files[0] })}
-          className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-vision-blue/10 file:text-vision-blue hover:file:bg-vision-blue/20" />
-      </label>
-      <label className="space-y-1.5">
-        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">অতিরিক্ত ছবি (একাধিক)</span>
-        <input type="file" accept="image/*" multiple onChange={handleImageChange}
-          className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-vision-blue/10 file:text-vision-blue hover:file:bg-vision-blue/20" />
-        {imageFiles.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {imageFiles.map((file, i) => (
-              <div key={i} className="relative w-14 h-14 rounded-lg overflow-hidden border border-gray-200">
-                <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
-                <button type="button" onClick={() => removeImage(i)} className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white text-[8px] rounded-bl-lg">×</button>
+    <form onSubmit={handleSubmit} className="max-h-[80vh] overflow-y-auto space-y-5 pr-1">
+
+      {/* ── Images ── */}
+      <div className="bg-gray-50/80 rounded-2xl p-4 space-y-4">
+        <SectionLabel>ছবি</SectionLabel>
+        <div className="grid grid-cols-2 gap-4">
+          {/* Main image */}
+          <div>
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">প্রধান ছবি *</p>
+            <label className="cursor-pointer block">
+              <div className={`relative rounded-xl border-2 border-dashed transition-all overflow-hidden ${mainPreview ? "border-vision-blue/30 bg-white" : "border-gray-200 bg-white hover:border-vision-blue/40"}`}>
+                {mainPreview ? (
+                  <div className="relative aspect-square">
+                    <img src={mainPreview} alt="preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <p className="text-white text-xs font-bold">পরিবর্তন করুন</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="aspect-square flex flex-col items-center justify-center gap-2 text-gray-300">
+                    <Upload className="w-8 h-8" />
+                    <p className="text-xs font-bold">ছবি আপলোড করুন</p>
+                    <p className="text-[10px]">Cloudinary তে যাবে</p>
+                  </div>
+                )}
               </div>
-            ))}
+              <input type="file" accept="image/*" onChange={handleMainImage} className="hidden" />
+            </label>
           </div>
-        )}
-      </label>
-      {fields.map(f => (
-        <label key={f.key} className="space-y-1.5">
-          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{f.label}</span>
-          {f.type === "textarea" ? (
-            <textarea value={form[f.key] || ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} rows={3}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" />
-          ) : (
-            <input type={f.type || "text"} value={form[f.key] || ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" required={f.required} />
-          )}
-        </label>
-      ))}
-      <label className="space-y-1.5">
-        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">ক্যাটাগরি</span>
-        <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value, subcategory: "" })}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5 bg-white">
-          <option value="">ক্যাটাগরি নির্বাচন করুন</option>
-          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-      </label>
-      {form.category && (
-        <label className="space-y-1.5">
-          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">সাবক্যাটাগরি</span>
-          <select value={form.subcategory} onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5 bg-white">
-            <option value="">সাবক্যাটাগরি নির্বাচন করুন</option>
-            {subcategories.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
-          </select>
-        </label>
-      )}
-      <label className="space-y-1.5">
-        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">কালার/হেক্স</span>
-        <div className="flex items-center gap-3">
-          <input type="color" value={form.color || "#0b3474"} onChange={(e) => setForm({ ...form, color: e.target.value })}
-            className="w-12 h-12 rounded-xl border border-gray-200 cursor-pointer" />
-          <input value={form.color || "#0b3474"} onChange={(e) => setForm({ ...form, color: e.target.value })}
-            className="flex-1 rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" />
+
+          {/* Gallery */}
+          <div>
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">গ্যালারি ছবি</p>
+            <label className="cursor-pointer block">
+              <div className="rounded-xl border-2 border-dashed border-gray-200 bg-white hover:border-vision-blue/40 transition-all p-3 min-h-[80px] flex flex-wrap gap-1.5 items-start">
+                {galleryFiles.map((file, i) => (
+                  <div key={i} className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
+                    <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                    <button type="button" onClick={(e) => { e.preventDefault(); setGalleryFiles(p => p.filter((_, idx) => idx !== i)); }}
+                      className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white rounded-bl-lg text-[9px] flex items-center justify-center">×</button>
+                  </div>
+                ))}
+                {galleryFiles.length === 0 && (
+                  <div className="w-full flex flex-col items-center justify-center gap-1 text-gray-300 py-4">
+                    <Plus className="w-6 h-6" />
+                    <p className="text-[10px] font-bold">একাধিক ছবি</p>
+                  </div>
+                )}
+              </div>
+              <input type="file" accept="image/*" multiple onChange={handleGallery} className="hidden" />
+            </label>
+          </div>
         </div>
-      </label>
-      {/* Price Options / Choose Option */}
-      <div className="border-t border-gray-100 pt-4 space-y-3">
-        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">মূল্য অপশন (Choose Option)</p>
-        <p className="text-[10px] text-gray-400">একাধিক ভেরিয়েন্ট থাকলে এখানে যোগ করুন (যেমন: Hot &amp; Cold, Storage Cabinet)</p>
+      </div>
+
+      {/* ── Basic Info ── */}
+      <div className="bg-gray-50/80 rounded-2xl p-4 space-y-3">
+        <SectionLabel>মূল তথ্য</SectionLabel>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="পণ্যের নাম" required>
+            <input className={inputCls} value={form.name || ""} onChange={e => set("name", e.target.value)} placeholder="Vision SmartView 43" required />
+          </FormField>
+          <FormField label="মডেল নম্বর" required>
+            <input className={inputCls} value={form.model || ""} onChange={e => set("model", e.target.value)} placeholder="VSV-43S" required />
+          </FormField>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="ক্যাটাগরি" required>
+            <select className={inputCls} value={form.category || ""} onChange={e => set("category", e.target.value)} required>
+              <option value="">নির্বাচন করুন</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </FormField>
+          <FormField label="সাবক্যাটাগরি">
+            <select className={inputCls} value={form.subcategory || ""} onChange={e => set("subcategory", e.target.value)}>
+              <option value="">নির্বাচন করুন</option>
+              {subcategories.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
+            </select>
+          </FormField>
+        </div>
+        <FormField label="বিবরণ">
+          <textarea className={inputCls} rows={2} value={form.description || ""} onChange={e => set("description", e.target.value)} placeholder="পণ্যের সংক্ষিপ্ত বিবরণ..." />
+        </FormField>
+        <FormField label="স্পেসিফিকেশন (কমা দিয়ে)">
+          <input className={inputCls} value={form.specs || ""} onChange={e => set("specs", e.target.value)} placeholder="43 inch, Full HD, Wifi, Bluetooth" />
+        </FormField>
+      </div>
+
+      {/* ── Pricing ── */}
+      <div className="bg-gray-50/80 rounded-2xl p-4 space-y-3">
+        <SectionLabel>মূল্য ও রঙ</SectionLabel>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="বিক্রয় মূল্য (৳)" required>
+            <input className={inputCls} type="number" value={form.price || ""} onChange={e => set("price", e.target.value)} placeholder="25000" required />
+          </FormField>
+          <FormField label="আসল মূল্য (৳)">
+            <input className={inputCls} type="number" value={form.originalPrice || ""} onChange={e => set("originalPrice", e.target.value)} placeholder="28000" />
+          </FormField>
+        </div>
+        <FormField label="ব্র্যান্ড কালার">
+          <div className="flex items-center gap-3">
+            <input type="color" value={form.color || "#0b3474"} onChange={e => set("color", e.target.value)}
+              className="w-10 h-10 rounded-xl border border-gray-200 cursor-pointer flex-shrink-0 p-0.5" />
+            <input className={inputCls} value={form.color || "#0b3474"} onChange={e => set("color", e.target.value)} placeholder="#0b3474" />
+          </div>
+        </FormField>
+      </div>
+
+      {/* ── Inventory ── */}
+      <div className="bg-gray-50/80 rounded-2xl p-4 space-y-3">
+        <SectionLabel>ইনভেন্টরি</SectionLabel>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="স্টক পরিমাণ">
+            <input className={inputCls} type="number" value={form.stock ?? 10} onChange={e => set("stock", Number(e.target.value))} />
+          </FormField>
+          <FormField label="লো স্টক সতর্কতা">
+            <input className={inputCls} type="number" value={form.lowStockThreshold ?? 5} onChange={e => set("lowStockThreshold", Number(e.target.value))} />
+          </FormField>
+        </div>
+      </div>
+
+      {/* ── Price Options ── */}
+      <div className="bg-gray-50/80 rounded-2xl p-4 space-y-3">
+        <SectionLabel>মূল্য অপশন (ভেরিয়েন্ট)</SectionLabel>
+        <p className="text-[10px] text-gray-400 -mt-1">একাধিক ভ্যারিয়েন্ট থাকলে যোগ করুন (যেমন: Hot &amp; Cold, Storage Cabinet)</p>
         {(form.priceOptions || []).map((opt, i) => (
           <div key={i} className="flex items-center gap-2">
-            <input value={opt.label} onChange={(e) => {
-              const opts = [...(form.priceOptions || [])];
-              opts[i] = { ...opts[i], label: e.target.value };
-              setForm({ ...form, priceOptions: opts });
-            }} placeholder="অপশন নাম" className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-vision-blue/50" />
-            <input type="number" value={opt.price} onChange={(e) => {
-              const opts = [...(form.priceOptions || [])];
-              opts[i] = { ...opts[i], price: Number(e.target.value) };
-              setForm({ ...form, priceOptions: opts });
-            }} placeholder="দাম" className="w-28 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-vision-blue/50" />
-            <button type="button" onClick={() => {
-              const opts = (form.priceOptions || []).filter((_, idx) => idx !== i);
-              setForm({ ...form, priceOptions: opts });
-            }} className="p-2 text-red-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all">
-              <X className="w-4 h-4" />
-            </button>
+            <input value={opt.label} onChange={e => { const o = [...(form.priceOptions||[])]; o[i]={...o[i],label:e.target.value}; set("priceOptions",o); }}
+              placeholder="অপশন নাম" className={inputCls + " flex-1"} />
+            <input type="number" value={opt.price} onChange={e => { const o=[...(form.priceOptions||[])]; o[i]={...o[i],price:Number(e.target.value)}; set("priceOptions",o); }}
+              placeholder="মূল্য" className={inputCls + " w-28"} />
+            <button type="button" onClick={() => set("priceOptions",(form.priceOptions||[]).filter((_,idx)=>idx!==i))}
+              className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all flex-shrink-0"><X className="w-4 h-4"/></button>
           </div>
         ))}
-        <button type="button" onClick={() => setForm({ ...form, priceOptions: [...(form.priceOptions || []), { label: "", price: Number(form.price) || 0 }] })}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-gray-300 text-xs font-bold text-gray-500 hover:border-vision-blue hover:text-vision-blue transition-all w-full justify-center">
-          <Plus className="w-3.5 h-3.5" /> অপশন যোগ করুন
+        <button type="button" onClick={() => set("priceOptions",[...(form.priceOptions||[]),{label:"",price:Number(form.price)||0}])}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-xs font-bold text-gray-400 hover:border-vision-blue hover:text-vision-blue transition-all">
+          <Plus className="w-3.5 h-3.5"/> অপশন যোগ করুন
         </button>
       </div>
 
-      {/* Status Toggles */}
-      <div className="border-t border-gray-100 pt-4 space-y-3">
-        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">পণ্য ট্যাগ</p>
-        <div className="grid grid-cols-2 gap-3">
+      {/* ── Tags ── */}
+      <div className="bg-gray-50/80 rounded-2xl p-4">
+        <SectionLabel>পণ্য ট্যাগ ও স্ট্যাটাস</SectionLabel>
+        <div className="grid grid-cols-2 gap-2.5">
           {[
-            { key: "isActive", label: "সক্রিয়", activeClass: "bg-green-100 text-green-700" },
-            { key: "featured", label: "ফিচার্ড", activeClass: "bg-purple-100 text-purple-700" },
-            { key: "isNewArrival", label: "নতুন আগমন", activeClass: "bg-blue-100 text-blue-700" },
-            { key: "isBestSeller", label: "বেস্ট সেলার", activeClass: "bg-amber-100 text-amber-700" },
+            { key:"isActive", label:"✓ সক্রিয়", on:"bg-green-500 text-white shadow-green-200", off:"bg-white text-gray-500 border border-gray-200" },
+            { key:"featured", label:"★ ফিচার্ড", on:"bg-purple-500 text-white shadow-purple-200", off:"bg-white text-gray-500 border border-gray-200" },
+            { key:"isNewArrival", label:"◆ নতুন আগমন", on:"bg-blue-500 text-white shadow-blue-200", off:"bg-white text-gray-500 border border-gray-200" },
+            { key:"isBestSeller", label:"⚑ বেস্ট সেলার", on:"bg-amber-500 text-white shadow-amber-200", off:"bg-white text-gray-500 border border-gray-200" },
           ].map(tag => (
-            <button key={tag.key} type="button" onClick={() => setForm({ ...form, [tag.key]: !form[tag.key] })}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition-all ${form[tag.key] ? `${tag.activeClass} border-transparent` : "bg-gray-50 text-gray-500 border-gray-200 hover:border-gray-300"}`}>
+            <button key={tag.key} type="button" onClick={() => set(tag.key, !form[tag.key])}
+              className={`px-4 py-2.5 rounded-xl text-xs font-extrabold shadow-sm transition-all ${form[tag.key] ? tag.on + " shadow-md" : tag.off}`}>
               {tag.label}
             </button>
           ))}
         </div>
       </div>
-      <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all">বাতিল</button>
-        <button type="submit" disabled={saving} className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
-          {saving ? "সেভ হচ্ছে..." : isEdit ? "আপডেট করুন" : "তৈরি করুন"}
+
+      {/* ── Actions ── */}
+      <div className="flex gap-3 pt-1 pb-2">
+        <button type="button" onClick={onCancel}
+          className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all">
+          বাতিল
+        </button>
+        <button type="submit" disabled={saving}
+          className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-extrabold hover:shadow-lg hover:shadow-vision-blue/25 disabled:opacity-60 transition-all flex items-center justify-center gap-2">
+          {saving ? <><RefreshCcw className="w-4 h-4 animate-spin"/> সেভ হচ্ছে...</> : isEdit ? "✓ আপডেট করুন" : "✓ পণ্য তৈরি করুন"}
         </button>
       </div>
     </form>

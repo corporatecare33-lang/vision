@@ -5,11 +5,17 @@ import mongoose from "mongoose";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import jwt from "jsonwebtoken";
+import { createReadStream, existsSync } from "fs";
+import { fileURLToPath } from "url";
+import path from "path";
 import Product from "./models/Product.js";
 import Admin from "./models/Admin.js";
 import Order from "./models/Order.js";
 import Page from "./models/Page.js";
 import Category from "./models/Category.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const publicDir = path.resolve(__dirname, "../public");
 import dashboardRoutes from "./routes/dashboard.js";
 import stockRoutes from "./routes/stock.js";
 import categoryRoutes from "./routes/categories.js";
@@ -708,6 +714,82 @@ app.put("/api/settings/:key", upload.single("logo"), async (req, res) => {
     );
     res.json(setting);
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST /api/admin/seed-products — Demo products + images to Cloudinary → MongoDB
+app.post("/api/admin/seed-products", authMiddleware, async (_req, res) => {
+  try {
+    if (mongoose.connection.readyState !== 1) return res.status(503).json({ message: "DB not connected" });
+
+    const { products: demoProducts, categories: demoCategories } = await import("../src/data/data.js");
+
+    // Upload local image to Cloudinary
+    const uploadLocalImage = (imgPath) =>
+      new Promise((resolve, reject) => {
+        const absPath = path.join(publicDir, imgPath.replace(/^\/+/, ""));
+        if (!existsSync(absPath)) return resolve(null);
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "vision-products", resource_type: "image" },
+          (err, result) => (err ? reject(err) : resolve(result))
+        );
+        createReadStream(absPath).pipe(stream);
+      });
+
+    // Collect unique image paths
+    const uniqueImages = [...new Set(demoProducts.map(p => p.image).filter(Boolean).filter(u => !u.startsWith("http")))];
+
+    // Upload all unique images to Cloudinary
+    const imageMap = {};
+    for (const imgPath of uniqueImages) {
+      try {
+        const result = await uploadLocalImage(imgPath);
+        if (result?.secure_url) imageMap[imgPath] = { url: result.secure_url, publicId: result.public_id };
+      } catch (e) {
+        console.warn("Image upload failed:", imgPath, e.message);
+      }
+    }
+
+    // Upsert categories
+    let catCount = 0;
+    for (const cat of demoCategories) {
+      await Category.updateOne({ id: cat.id }, { $set: { ...cat, isActive: true } }, { upsert: true });
+      catCount++;
+    }
+
+    // Upsert products with Cloudinary URLs
+    let prodCount = 0;
+    for (const product of demoProducts) {
+      const cloudImg = imageMap[product.image];
+      await Product.updateOne(
+        { id: product.id },
+        {
+          $set: {
+            ...product,
+            price: Number(product.price),
+            originalPrice: Math.round(Number(product.price) * 1.08),
+            image: cloudImg?.url || product.image || "",
+            imagePublicId: cloudImg?.publicId || "",
+            stock: 10,
+            lowStockThreshold: 5,
+            isActive: true,
+          }
+        },
+        { upsert: true }
+      );
+      prodCount++;
+    }
+
+    res.json({
+      ok: true,
+      message: `✅ সম্পন্ন! ${prodCount}টি পণ্য ও ${catCount}টি ক্যাটাগরি MongoDB তে সেভ হয়েছে। ${Object.keys(imageMap).length}টি ছবি Cloudinary তে আপলোড হয়েছে।`,
+      products: prodCount,
+      categories: catCount,
+      imagesUploaded: Object.keys(imageMap).length,
+    });
+  } catch (error) {
+    console.error("Seed error:", error);
     res.status(500).json({ message: error.message });
   }
 });
