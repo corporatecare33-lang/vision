@@ -94,18 +94,18 @@ const Cart = ({ mode = "cart" }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
       });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "অর্ডার সেভ করতে সমস্যা হয়েছে");
+      }
       const data = await res.json();
       const savedOrder = { ...orderData, orderId: data.orderId || `VSN-${Date.now()}`, createdAt: new Date().toISOString(), subtotal, couponDiscount };
       localStorage.setItem("vision-last-order", JSON.stringify(savedOrder));
       saveCartItems([]);
       setItems([]);
       navigate("/thank-you", { state: { order: savedOrder } });
-    } catch {
-      const savedOrder = { ...orderData, orderId: `VSN-${Date.now()}`, createdAt: new Date().toISOString(), subtotal, couponDiscount };
-      localStorage.setItem("vision-last-order", JSON.stringify(savedOrder));
-      saveCartItems([]);
-      setItems([]);
-      navigate("/thank-you", { state: { order: savedOrder } });
+    } catch (err) {
+      alert(err.message || "অর্ডার দেওয়া যায়নি, আবার চেষ্টা করুন।");
     }
     setPlacing(false);
   };

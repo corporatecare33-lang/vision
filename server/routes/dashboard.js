@@ -241,30 +241,7 @@ router.get("/sales-report", async (req, res) => {
 router.get("/orders", async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
-      return res.json([
-        {
-          _id: "1",
-          orderId: "ORD-20260620-0001",
-          customer: { name: "রোহন ডাস", phone: "০১৯০০৭০৮৮৪৪" },
-          items: [{ name: "মাল্টি-ফাংশনাল সবজি কাটিং", price: 174, quantity: 1 }],
-          totalAmount: 174,
-          paymentMethod: "cod",
-          paymentStatus: "pending",
-          orderStatus: "pending",
-          createdAt: new Date().toISOString(),
-        },
-        {
-          _id: "2",
-          orderId: "ORD-20260620-0002",
-          customer: { name: "রাবেয়া", phone: "০১৭৩৩৪৬৩২৩৪" },
-          items: [{ name: "ইকো-ব্যাগ", price: 215, quantity: 1 }],
-          totalAmount: 215,
-          paymentMethod: "bkash",
-          paymentStatus: "paid",
-          orderStatus: "shipped",
-          createdAt: new Date().toISOString(),
-        },
-      ]);
+      return res.json({ orders: [], total: 0, page: 1, pages: 1 });
     }
 
     const { status, page = 1, limit = 20, search } = req.query;
@@ -318,41 +295,7 @@ router.put("/orders/:id/status", async (req, res) => {
 router.get("/users", async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
-      return res.json([
-        {
-          _id: "1",
-          name: "কামাল হোসেন",
-          username: "superadmin",
-          email: "superadmin@gmail.com",
-          role: "superadmin",
-          isActive: true,
-          lastLogin: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          phone: "০১৭১২৩৪৫৬৭৮",
-        },
-        {
-          _id: "2",
-          name: "করিম মিয়া",
-          username: "admin1",
-          email: "admin1@vision.com",
-          role: "admin",
-          isActive: true,
-          lastLogin: new Date(Date.now() - 86400000).toISOString(),
-          createdAt: new Date(Date.now() - 604800000).toISOString(),
-          phone: "০১৭৯৮৭৬৫৪৩২",
-        },
-        {
-          _id: "3",
-          name: "রহিম উদ্দিন",
-          username: "rahim",
-          email: "rahim@vision.com",
-          role: "admin",
-          isActive: false,
-          lastLogin: null,
-          createdAt: new Date(Date.now() - 1209600000).toISOString(),
-          phone: "",
-        },
-      ]);
+      return res.json([]);
     }
 
     const users = await Admin.find().sort({ createdAt: -1 }).lean();
@@ -404,41 +347,7 @@ router.put("/users/:id", async (req, res) => {
 router.get("/fraud-check", async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
-      return res.json({
-        flaggedOrders: [
-          {
-            _id: "f1",
-            orderId: "ORD-20260620-0003",
-            customer: { name: "টেস্ট ইউজার", phone: "০১৯৯৯৯৯৯৯৯৯" },
-            totalAmount: 15000,
-            orderStatus: "pending",
-            isFraudSuspected: true,
-            fraudReason: "একাধিক অর্ডার একই ফোন নম্বরে, উচ্চ মূল্যের অর্ডার",
-            createdAt: new Date().toISOString(),
-            ipAddress: "192.168.1.100",
-          },
-          {
-            _id: "f2",
-            orderId: "ORD-20260619-0008",
-            customer: { name: "সন্দেহজনক ক্রেতা", phone: "০১৭৭৭৭৭৭৭৭৭" },
-            totalAmount: 25000,
-            orderStatus: "pending",
-            isFraudSuspected: true,
-            fraudReason: "একাধিকবার অর্ডার ক্যান্সেল, পেমেন্ট ফেইল",
-            createdAt: new Date(Date.now() - 86400000).toISOString(),
-            ipAddress: "10.0.0.55",
-          },
-        ],
-        totalFlagged: 2,
-        fraudRate: 0.8,
-        highRiskAmount: 40000,
-        commonPatterns: [
-          { pattern: "একই ফোনে একাধিক অর্ডার", count: 12 },
-          { pattern: "উচ্চ মূল্যের COD অর্ডার", count: 8 },
-          { pattern: "একাধিকবার ক্যান্সেল", count: 5 },
-          { pattern: "পেমেন্ট ফেইল পরে অর্ডার", count: 4 },
-        ],
-      });
+      return res.json({ flaggedOrders: [], totalFlagged: 0, fraudRate: 0, highRiskAmount: 0, commonPatterns: [] });
     }
 
     // Fraud detection logic
@@ -530,13 +439,7 @@ router.put("/fraud-check/:id/resolve", async (req, res) => {
 router.get("/pages", async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
-      return res.json([
-        { _id: "1", name: "প্রাইভেসি পলিসি", title: "প্রাইভেসি পলিসি", slug: "privacy-policy", content: "", isActive: true, showInFooter: true, showInHeader: false, sortOrder: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { _id: "2", name: "টার্মস অ্যান্ড কন্ডিশন", title: "টার্মস অ্যান্ড কন্ডিশন", slug: "terms-conditions", content: "", isActive: true, showInFooter: true, showInHeader: false, sortOrder: 2, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { _id: "3", name: "রিটার্ন পলিসি", title: "রিটার্ন পলিসি", slug: "return-policy", content: "", isActive: true, showInFooter: true, showInHeader: false, sortOrder: 3, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { _id: "4", name: "ডেলিভারি নিয়ম", title: "ডেলিভারি নিয়ম", slug: "delivery-rules", content: "", isActive: true, showInFooter: true, showInHeader: false, sortOrder: 4, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { _id: "5", name: "অর্ডার পদ্ধতি", title: "অর্ডার পদ্ধতি", slug: "order-procedure", content: "", isActive: false, showInFooter: false, showInHeader: false, sortOrder: 5, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-      ]);
+      return res.json([]);
     }
 
     const pages = await Page.find().sort({ sortOrder: 1, createdAt: -1 }).lean();

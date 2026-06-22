@@ -350,13 +350,17 @@ const StockBadge = ({ stock, threshold }) => {
   const handleTogglePageStatus = async (id, isActive) => { await updatePageStatus(id, !isActive); loadPages(); };
 
   const handleSavePage = async () => {
-    if (editPage?._id) {
-      await updatePage(editPage._id, { name: editPage.name, title: editPage.title, content: editPage.content, isActive: editPage.isActive });
-    } else if (editPage) {
-      const slug = editPage.name.toLowerCase().replace(/[ঀ-৿]/g, (c) => c).replace(/\s+/g, "-").replace(/[^\wঀ-৿-]/g, "").replace(/-+/g, "-").trim() || `page-${Date.now()}`;
-      await createPage({ name: editPage.name, title: editPage.title, content: editPage.content, slug });
+    try {
+      if (editPage?._id) {
+        await updatePage(editPage._id, { name: editPage.name, title: editPage.title, content: editPage.content, isActive: editPage.isActive });
+      } else if (editPage) {
+        const slug = editPage.name.toLowerCase().replace(/[ঀ-৿]/g, (c) => c).replace(/\s+/g, "-").replace(/[^\wঀ-৿-]/g, "").replace(/-+/g, "-").trim() || `page-${Date.now()}`;
+        await createPage({ name: editPage.name, title: editPage.title, content: editPage.content, slug });
+      }
+      setEditPage(null); setShowAddPage(false); loadPages();
+    } catch (err) {
+      alert(err.message || "পেজ সেভ করতে সমস্যা হয়েছে");
     }
-    setEditPage(null); setShowAddPage(false); loadPages();
   };
 
   const handleDeletePage = async (id) => { if (window.confirm("পেজটি মুছবেন?")) { await deletePage(id); loadPages(); } };
@@ -2861,6 +2865,7 @@ const GeneralSettingsManager = () => {
       body: fd,
     });
     const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "ইমেজ আপলোড ব্যর্থ");
     return data.url || data.secure_url || null;
   };
 

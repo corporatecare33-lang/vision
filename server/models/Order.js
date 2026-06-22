@@ -60,14 +60,13 @@ const orderSchema = new mongoose.Schema(
 );
 
 // Auto-generate orderId before saving
-orderSchema.pre("save", async function (next) {
+orderSchema.pre("save", async function () {
   if (!this.orderId) {
     const date = new Date();
     const prefix = `ORD-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}-`;
     const count = await mongoose.model("Order").countDocuments();
     this.orderId = `${prefix}${String(count + 1).padStart(4, "0")}`;
   }
-  next();
 });
 
 const Order = mongoose.model("Order", orderSchema);

@@ -9,12 +9,16 @@ import { getCartCount } from "../utils/cart";
 const navLinkClass = ({ isActive }) =>
   `text-[13px] font-bold uppercase tracking-wider transition-colors ${isActive ? "text-vision-blue" : "text-slate-800 hover:text-vision-blue"}`;
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [openMobileCategories, setOpenMobileCategories] = useState(() => new Set());
+  const [logoUrl, setLogoUrl] = useState("");
+  const [siteName, setSiteName] = useState("");
   const navigate = useNavigate();
   const { categories } = useCategories();
   const { products } = useCatalogProducts();
@@ -84,11 +88,23 @@ const Header = () => {
     };
   }, []);
 
+  useEffect(() => {
+    fetch(`${API_URL}/settings/general`)
+      .then(r => r.json())
+      .then(d => {
+        if (d?.value) {
+          if (d.value.logoUrl) setLogoUrl(d.value.logoUrl);
+          if (d.value.siteName) setSiteName(d.value.siteName);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="container-custom flex h-16 items-center justify-between lg:h-20">
         <Link to="/" className="flex items-center gap-3" onClick={close}>
-          <img src={assetPath("/vision-logo.jpeg")} alt="Vision Smart" width="160" height="56" decoding="async" className="h-12 w-auto object-contain lg:h-14" />
+          <img src={logoUrl || assetPath("/vision-logo.jpeg")} alt={siteName || "Vision Smart"} width="160" height="56" decoding="async" className="h-12 w-auto object-contain lg:h-14" />
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
@@ -206,7 +222,7 @@ const Header = () => {
 
       <div className={`fixed inset-0 z-50 bg-white transition-transform duration-300 lg:hidden ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
         <div className="flex h-16 items-center justify-between border-b border-slate-100 px-5">
-          <img src={assetPath("/vision-logo.jpeg")} alt="Vision Smart" width="140" height="44" decoding="async" className="h-11 w-auto object-contain" />
+          <img src={logoUrl || assetPath("/vision-logo.jpeg")} alt={siteName || "Vision Smart"} width="140" height="44" decoding="async" className="h-11 w-auto object-contain" />
           <button className="rounded-md p-2" onClick={close} aria-label="Close menu">
             <X className="h-7 w-7" />
           </button>

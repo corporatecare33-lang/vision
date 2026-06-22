@@ -62,7 +62,7 @@ const pageSchema = new mongoose.Schema(
 );
 
 // Auto-generate slug before saving
-pageSchema.pre("save", function (next) {
+pageSchema.pre("save", async function () {
   if (this.isModified("name") && !this.isModified("slug")) {
     this.slug = this.name
       .toLowerCase()
@@ -71,7 +71,6 @@ pageSchema.pre("save", function (next) {
       .replace(/-+/g, "-")
       .trim();
   }
-  next();
 });
 
 const Page = mongoose.model("Page", pageSchema);
