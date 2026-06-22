@@ -244,6 +244,8 @@ const StockBadge = ({ stock, threshold }) => {
   const [stockStatusFilter, setStockStatusFilter] = useState("all");
   const [adjustStockProduct, setAdjustStockProduct] = useState(null);
   const [showStockAdjust, setShowStockAdjust] = useState(false);
+  const [stockAdjustForm, setStockAdjustForm] = useState({ type: "add", quantity: "", reason: "" });
+  const [viewOrder, setViewOrder] = useState(null);
   const [stockTxPage, setStockTxPage] = useState(1);
   const [activeStockTab, setActiveStockTab] = useState("overview");
   const [categories, setCategories] = useState([]);
@@ -362,10 +364,10 @@ const StockBadge = ({ stock, threshold }) => {
   const handleSaveProduct = async () => { setShowAddProduct(false); setEditProduct(null); loadProducts(); };
 
   const handleStockAdjust = async () => {
-    if (!adjustStockProduct) return;
-    const { type, quantity, reason } = adjustStockProduct;
-    await updateProductStock(adjustStockProduct.id, { type, quantity: Number(quantity), reason, performedBy: "admin" });
-    setShowStockAdjust(false); setAdjustStockProduct(null); loadStockProducts(); loadStockTransactions(); loadStockAlerts();
+    if (!adjustStockProduct || !stockAdjustForm.quantity) return;
+    await updateProductStock(adjustStockProduct.id, { type: stockAdjustForm.type, quantity: Number(stockAdjustForm.quantity), reason: stockAdjustForm.reason, performedBy: "admin" });
+    setShowStockAdjust(false); setAdjustStockProduct(null); setStockAdjustForm({ type: "add", quantity: "", reason: "" });
+    loadStockProducts(); loadStockTransactions(); loadStockAlerts();
   };
 
   const handleSaveCategory = async () => {
@@ -471,9 +473,9 @@ const StockBadge = ({ stock, threshold }) => {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-100 flex flex-col transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-100 flex flex-col transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:flex-shrink-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 bg-gradient-to-br from-vision-blue to-vision-cyan rounded-xl flex items-center justify-center shadow-lg shadow-vision-blue/20">
@@ -966,6 +968,20 @@ const StockBadge = ({ stock, threshold }) => {
                 </div>
               )}
 
+              {/* Search & Filter */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-200 px-4 py-2.5 flex-1 min-w-[200px]">
+                  <Search className="w-4 h-4 text-gray-400" />
+                  <input type="text" placeholder="পণ্যের নাম বা মডেল সার্চ করুন..." value={stockSearch} onChange={(e) => { setStockSearch(e.target.value); }} className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 flex-1" />
+                </div>
+                <select value={stockStatusFilter} onChange={(e) => setStockStatusFilter(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-600 outline-none">
+                  <option value="all">সব স্টক</option>
+                  <option value="low">লো স্টক</option>
+                  <option value="out">স্টক শেষ</option>
+                </select>
+                <button onClick={() => { loadStockProducts(); }} className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-2.5 rounded-xl border border-gray-200 hover:border-vision-blue/30 hover:text-vision-blue transition-all"><Search className="w-3.5 h-3.5" /> সার্চ</button>
+              </div>
+
               {/* Real Products Table */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <table className="w-full">
@@ -1240,7 +1256,7 @@ const StockBadge = ({ stock, threshold }) => {
                             >
                               <Truck className="w-3 h-3" />{order.courierTrackingId ? "পাঠানো হয়েছে" : "কুরিয়ার"}
                             </button>
-                            <button className="p-1.5 text-gray-400 hover:text-vision-blue hover:bg-vision-blue/5 rounded-lg transition-all"><Eye className="w-4 h-4" /></button>
+                            <button onClick={() => setViewOrder(order)} className="p-1.5 text-gray-400 hover:text-vision-blue hover:bg-vision-blue/5 rounded-lg transition-all"><Eye className="w-4 h-4" /></button>
                           </div>
                         </td>
                       </tr>
@@ -1548,6 +1564,89 @@ const StockBadge = ({ stock, threshold }) => {
             </div>
           )}
         </div>
+
+        {/* ===== STOCK ADJUST MODAL ===== */}
+        <Modal isOpen={showStockAdjust} onClose={() => { setShowStockAdjust(false); setAdjustStockProduct(null); setStockAdjustForm({ type: "add", quantity: "", reason: "" }); }} title="স্টক আপডেট" size="sm">
+          {adjustStockProduct && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+                {adjustStockProduct.image ? <img src={adjustStockProduct.image} alt={adjustStockProduct.name} className="w-12 h-12 object-cover rounded-lg border border-gray-100" /> : <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center"><Package className="w-6 h-6 text-gray-400" /></div>}
+                <div>
+                  <p className="font-bold text-sm text-gray-900">{adjustStockProduct.name}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">বর্তমান স্টক: <span className="font-extrabold text-vision-blue">{adjustStockProduct.stock ?? 0}</span></p>
+                </div>
+              </div>
+              <div>
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2">অপারেশন</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[["add","যোগ করুন","green"],["subtract","বিয়োগ","red"],["set","নির্ধারণ","blue"]].map(([t, l, c]) => (
+                    <button key={t} onClick={() => setStockAdjustForm(f => ({ ...f, type: t }))} className={`py-2 rounded-xl border text-xs font-bold transition-all ${stockAdjustForm.type === t ? `bg-${c}-50 text-${c}-700 border-${c}-300` : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"}`}>{l}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">পরিমাণ *</label>
+                <input type="number" min="0" value={stockAdjustForm.quantity} onChange={e => setStockAdjustForm(f => ({ ...f, quantity: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" placeholder="0" />
+              </div>
+              <div>
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">কারণ</label>
+                <input value={stockAdjustForm.reason} onChange={e => setStockAdjustForm(f => ({ ...f, reason: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" placeholder="স্টক পরিবর্তনের কারণ লিখুন..." />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button onClick={() => { setShowStockAdjust(false); setAdjustStockProduct(null); setStockAdjustForm({ type: "add", quantity: "", reason: "" }); }} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">বাতিল</button>
+                <button onClick={handleStockAdjust} disabled={!stockAdjustForm.quantity} className="flex-1 px-4 py-2.5 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-sm font-bold disabled:opacity-50 hover:shadow-lg transition-all">আপডেট করুন</button>
+              </div>
+            </div>
+          )}
+        </Modal>
+
+        {/* ===== ORDER DETAIL MODAL ===== */}
+        <Modal isOpen={!!viewOrder} onClose={() => setViewOrder(null)} title={`অর্ডার বিস্তারিত — ${viewOrder?.orderId || ""}`} size="lg">
+          {viewOrder && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">গ্রাহক তথ্য</p>
+                  <p className="text-sm font-bold text-gray-900">{viewOrder.customer?.name}</p>
+                  <p className="text-xs text-gray-600 mt-1">{viewOrder.customer?.phone}</p>
+                  <p className="text-xs text-gray-500 mt-1">{viewOrder.customer?.address}</p>
+                  {viewOrder.customer?.email && <p className="text-xs text-gray-500">{viewOrder.customer.email}</p>}
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">অর্ডার তথ্য</p>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between"><span className="text-gray-500">তারিখ</span><span className="font-semibold">{new Date(viewOrder.createdAt).toLocaleDateString("bn-BD")}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">পেমেন্ট</span><span className="font-semibold uppercase">{viewOrder.paymentMethod || "COD"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">স্ট্যাটাস</span><StatusBadge status={viewOrder.orderStatus} /></div>
+                    {viewOrder.isFraudSuspected && <p className="text-red-600 font-bold mt-1">⚠️ সন্দেহজনক</p>}
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-4 py-3 border-b border-gray-100">পণ্য তালিকা</p>
+                <div className="divide-y divide-gray-50">
+                  {(viewOrder.items || []).map((item, i) => (
+                    <div key={i} className="px-4 py-3 flex items-center justify-between">
+                      <div><p className="text-xs font-bold text-gray-900">{item.name}</p><p className="text-[10px] text-gray-400">x{item.quantity}</p></div>
+                      <span className="text-xs font-extrabold text-vision-blue">৳{(item.price * item.quantity).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-xs">
+                <div className="flex justify-between"><span className="text-gray-500">সাবটোটাল</span><span className="font-semibold">৳{((viewOrder.totalAmount || 0) - (viewOrder.deliveryCharge || 0) + (viewOrder.discount || 0)).toLocaleString()}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">ডেলিভারি চার্জ</span><span className="font-semibold">৳{viewOrder.deliveryCharge || 0}</span></div>
+                {viewOrder.discount > 0 && <div className="flex justify-between text-green-600"><span>ছাড়</span><span className="font-semibold">-৳{viewOrder.discount}</span></div>}
+                <div className="flex justify-between pt-2 border-t border-gray-200 text-sm font-extrabold text-gray-900"><span>মোট</span><span>৳{viewOrder.totalAmount?.toLocaleString()}</span></div>
+              </div>
+              {viewOrder.notes && <p className="text-xs text-gray-500 bg-yellow-50 border border-yellow-100 rounded-xl p-3">📝 {viewOrder.notes}</p>}
+              <div className="flex gap-2 pt-1">
+                <button onClick={() => setViewOrder(null)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">বন্ধ করুন</button>
+                <button onClick={() => { handleSendToSteadfast(viewOrder); setViewOrder(null); }} disabled={!!viewOrder.courierTrackingId} className="flex-1 px-4 py-2.5 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 hover:shadow-lg transition-all"><Truck className="w-4 h-4" />{viewOrder.courierTrackingId ? "পাঠানো হয়েছে" : "কুরিয়ারে পাঠান"}</button>
+              </div>
+            </div>
+          )}
+        </Modal>
       </main>
     </div>
   );
@@ -2738,12 +2837,18 @@ const GeneralSettingsManager = () => {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [logoFile, setLogoFile] = useState(null);
   const [faviconFile, setFaviconFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/settings/general`).then(r => r.json()).then(d => { if (d?.value) setCfg(s => ({ ...s, ...d.value })); }).catch(() => {});
+    fetch(`${API_URL}/settings/general`)
+      .then(r => r.json())
+      .then(d => { if (d?.value && typeof d.value === "object") setCfg(s => ({ ...s, ...d.value })); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const uploadImage = async (file) => {
@@ -2760,22 +2865,22 @@ const GeneralSettingsManager = () => {
   };
 
   const handleSave = async () => {
-    setSaving(true);
-    setUploading(true);
+    setSaving(true); setUploading(true); setSaveError("");
     try {
       const token = localStorage.getItem("token");
       let updatedCfg = { ...cfg };
       if (logoFile) { const url = await uploadImage(logoFile); if (url) updatedCfg.logoUrl = url; }
       if (faviconFile) { const url = await uploadImage(faviconFile); if (url) updatedCfg.faviconUrl = url; }
       setUploading(false);
-      await fetch(`${API_URL}/settings/general`, {
+      const res = await fetch(`${API_URL}/settings/general`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ value: updatedCfg }),
       });
-      setCfg(updatedCfg);
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message || `সেভ ব্যর্থ (${res.status})`); }
+      setCfg(updatedCfg); setLogoFile(null); setFaviconFile(null);
       setSaved(true); setTimeout(() => setSaved(false), 3000);
-    } catch (e) { console.error(e); setUploading(false); }
+    } catch (e) { setSaveError(e.message || "সেভ করা সম্ভব হয়নি"); setUploading(false); }
     setSaving(false);
   };
 
@@ -2787,6 +2892,8 @@ const GeneralSettingsManager = () => {
     </div>
   );
 
+  if (loading) return <div className="flex items-center justify-center py-20 text-gray-400 text-sm">লোড হচ্ছে...</div>;
+
   return (
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2794,9 +2901,12 @@ const GeneralSettingsManager = () => {
           <h3 className="text-2xl font-extrabold text-gray-900">সাধারণ সেটিংস</h3>
           <p className="text-sm text-gray-500 mt-1">সাইটের নাম, লোগো, যোগাযোগ ও SEO তথ্য</p>
         </div>
-        <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
-          {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : (saving || uploading) ? "আপলোড হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ করুন</>}
-        </button>
+        <div className="flex flex-col items-end gap-1">
+          <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
+            {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : (saving || uploading) ? "আপলোড হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ করুন</>}
+          </button>
+          {saveError && <p className="text-xs font-bold text-red-500">{saveError}</p>}
+        </div>
       </div>
 
       {/* Branding */}
