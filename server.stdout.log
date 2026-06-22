@@ -1,0 +1,6 @@
+🔗 Connecting to MongoDB...
+   URI: mongodb+srv://vision:***@cluster0.esxsvnz.mongodb.net/vision?appName=Cluster0
+✅ MongoDB connected successfully!
+📊 Database name: vision
+🚀 Vision dashboard API running on http://localhost:5000
+📍 Health check: http://localhost:5000/api/health
