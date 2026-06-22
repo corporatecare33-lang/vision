@@ -1084,7 +1084,7 @@ const StockBadge = ({ stock, threshold }) => {
               </div>
 
               {/* Add/Edit Category Modal */}
-              <Modal isOpen={showAddCategory} onClose={() => { setShowAddCategory(false); setEditCategory(null); }} title={editCategory?._id ? "ক্যাটাগরি সম্পাদনা" : "নতুন ক্যাটাগরি"}>
+              <Modal isOpen={showAddCategory} onClose={() => { setShowAddCategory(false); setEditCategory(null); }} title={editCategory?._id ? "ক্যাটাগরি সম্পাদনা" : "নতুন ক্যাটাগরি"} size="lg">
                 {editCategory && (
                   <CategoryForm category={editCategory} onSave={handleSaveCategory} onCancel={() => { setShowAddCategory(false); setEditCategory(null); }} isEdit={!!editCategory?._id} />
                 )}
@@ -1703,92 +1703,128 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
     setSaving(false);
   };
 
+  const catInputCls = "w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-vision-blue/60 focus:ring-4 focus:ring-vision-blue/5 transition placeholder:text-gray-300";
+  const CatSection = ({ icon, label }) => (
+    <div className="flex items-center gap-2 mb-4 mt-1">
+      <span className="text-base">{icon}</span>
+      <p className="text-[10px] font-extrabold uppercase tracking-widest text-vision-blue">{label}</p>
+      <div className="flex-1 h-px bg-gradient-to-r from-vision-blue/20 to-transparent rounded-full" />
+    </div>
+  );
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <label className="space-y-1.5">
-        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">ক্যাটাগরি ID</span>
-        <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" required />
-      </label>
-      <label className="space-y-1.5">
-        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">নাম</span>
-        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" required />
-      </label>
-      <label className="space-y-1.5">
-        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">শর্ট নেম</span>
-        <input value={form.shortName || ""} onChange={(e) => setForm({ ...form, shortName: e.target.value })}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" />
-      </label>
-      <label className="space-y-1.5">
-        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">ট্যাগলাইন</span>
-        <input value={form.tagline || ""} onChange={(e) => setForm({ ...form, tagline: e.target.value })}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" />
-      </label>
-      <label className="space-y-1.5">
-        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">বিবরণ</span>
-        <textarea value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" />
-      </label>
-      <div className="grid grid-cols-2 gap-3">
-        <label className="space-y-1.5">
-          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">একসেন্ট কালার</span>
-          <div className="flex items-center gap-2">
-            <input type="color" value={form.accent || "#0b3474"} onChange={(e) => setForm({ ...form, accent: e.target.value })}
-              className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer" />
-            <input value={form.accent || "#0b3474"} onChange={(e) => setForm({ ...form, accent: e.target.value })}
-              className="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-vision-blue/50" />
+    <form onSubmit={handleSubmit} className="space-y-5">
+
+      {/* Basic Info */}
+      <div className="bg-gray-50/60 rounded-2xl p-4 border border-gray-100">
+        <CatSection icon="🏷️" label="মূল তথ্য" />
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">ক্যাটাগরি ID <span className="text-red-400">*</span></label>
+            <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })}
+              className={catInputCls} placeholder="e.g. ac, tv, fridge" required />
           </div>
-        </label>
-        <label className="space-y-1.5">
-          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">সর্ট অর্ডার</span>
-          <input type="number" value={form.sortOrder || 0} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
-            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" />
-        </label>
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">শর্ট নেম</label>
+            <input value={form.shortName || ""} onChange={(e) => setForm({ ...form, shortName: e.target.value })}
+              className={catInputCls} placeholder="e.g. AC" />
+          </div>
+          <div className="col-span-2 space-y-1.5">
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">নাম <span className="text-red-400">*</span></label>
+            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className={catInputCls} placeholder="ক্যাটাগরির পূর্ণ নাম" required />
+          </div>
+          <div className="col-span-2 space-y-1.5">
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">ট্যাগলাইন</label>
+            <input value={form.tagline || ""} onChange={(e) => setForm({ ...form, tagline: e.target.value })}
+              className={catInputCls} placeholder="ছোট বিবরণী লাইন" />
+          </div>
+          <div className="col-span-2 space-y-1.5">
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">বিবরণ</label>
+            <textarea value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2}
+              className={catInputCls + " resize-none"} placeholder="বিস্তারিত বিবরণ..." />
+          </div>
+        </div>
       </div>
-      <label className="flex items-center gap-3">
-        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">সক্রিয়</span>
-        <button type="button" onClick={() => setForm({ ...form, isActive: !form.isActive })}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${form.isActive !== false ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-          {form.isActive !== false ? "সক্রিয়" : "নিষ্ক্রিয়"}
-        </button>
-      </label>
+
+      {/* Appearance */}
+      <div className="bg-gray-50/60 rounded-2xl p-4 border border-gray-100">
+        <CatSection icon="🎨" label="সেটিংস ও রঙ" />
+        <div className="grid grid-cols-3 gap-3 items-end">
+          <div className="col-span-2 space-y-1.5">
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">একসেন্ট কালার</label>
+            <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 focus-within:border-vision-blue/60 focus-within:ring-4 focus-within:ring-vision-blue/5 transition">
+              <input type="color" value={form.accent || "#0b3474"} onChange={(e) => setForm({ ...form, accent: e.target.value })}
+                className="w-9 h-9 rounded-lg border-0 cursor-pointer p-0.5 bg-transparent" />
+              <input value={form.accent || "#0b3474"} onChange={(e) => setForm({ ...form, accent: e.target.value })}
+                className="flex-1 text-sm outline-none bg-transparent font-mono" placeholder="#0b3474" />
+              <span className="w-5 h-5 rounded-full border border-gray-200 flex-shrink-0" style={{ background: form.accent || "#0b3474" }} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">সর্ট অর্ডার</label>
+            <input type="number" value={form.sortOrder || 0} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
+              className={catInputCls} />
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-between bg-white rounded-xl border border-gray-200 px-4 py-3">
+          <div>
+            <p className="text-sm font-bold text-gray-700">স্ট্যাটাস</p>
+            <p className="text-[11px] text-gray-400 mt-0.5">{form.isActive !== false ? "এই ক্যাটাগরি সক্রিয়" : "এই ক্যাটাগরি নিষ্ক্রিয়"}</p>
+          </div>
+          <button type="button" onClick={() => setForm({ ...form, isActive: !form.isActive })}
+            className={`relative w-12 h-6 rounded-full transition-all duration-300 ${form.isActive !== false ? "bg-green-500" : "bg-gray-300"}`}>
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-300 ${form.isActive !== false ? "translate-x-6" : "translate-x-0"}`} />
+          </button>
+        </div>
+      </div>
 
       {/* Subcategories */}
-      <div className="border-t border-gray-100 pt-4">
-        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-3">সাবক্যাটাগরি</p>
-        <div className="space-y-2 mb-3">
-          {(form.subcategories || []).map(sc => (
-            <div key={sc.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2.5">
-              <div>
-                <p className="text-xs font-bold text-gray-900">{sc.name}</p>
-                <p className="text-[10px] text-gray-400">{sc.id}</p>
+      <div className="bg-gray-50/60 rounded-2xl p-4 border border-gray-100">
+        <CatSection icon="📂" label="সাবক্যাটাগরি" />
+        {(form.subcategories || []).length > 0 && (
+          <div className="space-y-2 mb-4">
+            {(form.subcategories || []).map(sc => (
+              <div key={sc.id} className="flex items-center justify-between bg-white rounded-xl border border-gray-200 px-4 py-2.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-vision-blue/10 to-vision-cyan/10 flex items-center justify-center">
+                    <span className="text-[10px] font-black text-vision-blue">{sc.name?.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">{sc.name}</p>
+                    <p className="text-[10px] text-gray-400 font-mono">{sc.id}{sc.tagline ? ` · ${sc.tagline}` : ""}</p>
+                  </div>
+                </div>
+                <button type="button" onClick={() => removeSubcategory(sc.id)} className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all">
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <button type="button" onClick={() => removeSubcategory(sc.id)} className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-4 gap-2">
-          <input value={newSubId} onChange={(e) => setNewSubId(e.target.value)} placeholder="ID"
-            className="rounded-xl border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50" />
-          <input value={newSubName} onChange={(e) => setNewSubName(e.target.value)} placeholder="নাম"
-            className="rounded-xl border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50" />
-          <input value={newSubTagline} onChange={(e) => setNewSubTagline(e.target.value)} placeholder="ট্যাগলাইন"
-            className="rounded-xl border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50" />
-          <div className="flex gap-1">
-            <input value={newSubBanner} onChange={(e) => setNewSubBanner(e.target.value)} placeholder="ব্যানার (URL)"
-              className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50" />
-            <button type="button" onClick={addSubcategory} disabled={!newSubName || !newSubId}
-              className="px-3 py-2 bg-vision-blue text-white rounded-xl text-[10px] font-bold hover:bg-vision-cyan disabled:opacity-50 transition-all">+</button>
+            ))}
           </div>
+        )}
+        <div className="bg-white rounded-xl border border-dashed border-gray-300 p-3 space-y-2">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">নতুন সাবক্যাটাগরি যোগ করুন</p>
+          <div className="grid grid-cols-2 gap-2">
+            <input value={newSubId} onChange={(e) => setNewSubId(e.target.value)} placeholder="ID (e.g. split-ac)"
+              className="rounded-lg border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50 bg-gray-50 focus:bg-white transition" />
+            <input value={newSubName} onChange={(e) => setNewSubName(e.target.value)} placeholder="নাম"
+              className="rounded-lg border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50 bg-gray-50 focus:bg-white transition" />
+            <input value={newSubTagline} onChange={(e) => setNewSubTagline(e.target.value)} placeholder="ট্যাগলাইন (ঐচ্ছিক)"
+              className="rounded-lg border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50 bg-gray-50 focus:bg-white transition" />
+            <input value={newSubBanner} onChange={(e) => setNewSubBanner(e.target.value)} placeholder="ব্যানার URL (ঐচ্ছিক)"
+              className="rounded-lg border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50 bg-gray-50 focus:bg-white transition" />
+          </div>
+          <button type="button" onClick={addSubcategory} disabled={!newSubName || !newSubId}
+            className="w-full py-2 bg-gradient-to-r from-vision-blue/10 to-vision-cyan/10 text-vision-blue rounded-lg text-xs font-bold hover:from-vision-blue hover:to-vision-cyan hover:text-white disabled:opacity-40 transition-all border border-vision-blue/20 hover:border-transparent">
+            + সাবক্যাটাগরি যোগ করুন
+          </button>
         </div>
       </div>
 
-      <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all">বাতিল</button>
-        <button type="submit" disabled={saving} className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
+      <div className="flex gap-3 pt-1">
+        <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all">বাতিল</button>
+        <button type="submit" disabled={saving}
+          className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-vision-blue/25 disabled:opacity-50 transition-all">
           {saving ? "সেভ হচ্ছে..." : isEdit ? "আপডেট করুন" : "তৈরি করুন"}
         </button>
       </div>
