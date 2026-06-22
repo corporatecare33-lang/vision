@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -210,6 +210,7 @@ const StockBadge = ({ stock, threshold }) => {
   const [activeNav, setActiveNav] = useState(() => {
     return localStorage.getItem("dashboardActiveNav") || "dashboard";
   });
+  const contentRef = useRef(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState(null);
   const [salesReport, setSalesReport] = useState(null);
@@ -249,6 +250,7 @@ const StockBadge = ({ stock, threshold }) => {
   const [editCategory, setEditCategory] = useState(null);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [categorySearch, setCategorySearch] = useState("");
+  const [marketingCounts, setMarketingCounts] = useState({ coupons: 0, banners: 0, flashSales: 0 });
 
   const loadDashboardData = useCallback(async () => {
     setIsLoading(true);
@@ -299,6 +301,7 @@ const StockBadge = ({ stock, threshold }) => {
   }, []);
 
   useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     localStorage.setItem("dashboardActiveNav", activeNav);
     if (activeNav === "dashboard") loadDashboardData();
     if (activeNav === "orders") loadOrders();
@@ -307,7 +310,12 @@ const StockBadge = ({ stock, threshold }) => {
     if (activeNav === "page-management") loadPages();
     if (activeNav === "products") { loadProducts(); loadCategories(); }
     if (activeNav === "price-edit") { loadProducts(); loadCategories(); }
-    if (activeNav === "marketing") { loadProducts(); loadDashboardData(); }
+    if (activeNav === "marketing") {
+      loadProducts(); loadDashboardData();
+      Promise.all([getCoupons(), getBanners(), getFlashSales(true)]).then(([c, b, f]) => {
+        setMarketingCounts({ coupons: Array.isArray(c) ? c.filter(x => x.isActive).length : 0, banners: Array.isArray(b) ? b.length : 0, flashSales: Array.isArray(f) ? f.filter(x => x.isActive && new Date(x.endDate) > new Date()).length : 0 });
+      });
+    }
     if (activeNav === "stock-management") { loadStockProducts(); loadStockTransactions(); loadStockAlerts(); loadCategories(); }
     if (activeNav === "category-management") { loadCategories(); }
   }, [activeNav, loadDashboardData, loadOrders, loadUsers, loadFraudData, loadPages, loadProducts, loadStockProducts, loadStockTransactions, loadStockAlerts, loadCategories]);
@@ -522,7 +530,7 @@ const StockBadge = ({ stock, threshold }) => {
           </div>
         </header>
 
-        <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
+        <div ref={contentRef} className="flex-1 p-4 lg:p-6 overflow-y-auto">
           {/* ============ DASHBOARD ============ */}
           {activeNav === "dashboard" && (
             <div className="space-y-4 animate-fadeIn">
@@ -1279,25 +1287,126 @@ const StockBadge = ({ stock, threshold }) => {
 
           {/* ============ MARKETING ============ */}
           {activeNav === "marketing" && (
-            <div className="space-y-6 animate-fadeIn">
+            <div className="space-y-5 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-gray-900">মার্কেটিং</h3>
-                  <p className="text-sm text-gray-500 mt-1">মার্কেটিং ক্যাম্পেইন ও প্রমোশন ম্যানেজ করুন</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900">মার্কেটিং ওভারভিউ</h3>
+                  <p className="text-sm text-gray-500 mt-1">বিক্রয়, প্রমোশন ও ক্যাম্পেইন একনজরে</p>
                 </div>
-                <button onClick={() => setActiveNav("coupons")} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg transition-all"><TicketPercent className="w-4 h-4" /> কুপন তৈরি করুন</button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setActiveNav("flash-sale")} className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl text-xs font-bold hover:border-vision-blue/40 hover:text-vision-blue transition-all"><Zap className="w-3.5 h-3.5" /> ফ্ল্যাশ সেল</button>
+                  <button onClick={() => setActiveNav("coupons")} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-vision-blue/25 transition-all"><TicketPercent className="w-4 h-4" /> কুপন তৈরি</button>
+                </div>
               </div>
+
+              {/* Sales Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { bg: "from-emerald-50 to-emerald-100", icon: DollarSign, iconBg: "bg-emerald-500", value: formatTk(stats?.totalSales), label: "মোট বিক্রয়", sub: "সকল অর্ডার" },
+                  { bg: "from-blue-50 to-blue-100", icon: ShoppingCart, iconBg: "bg-blue-500", value: stats?.totalOrders || 0, label: "মোট অর্ডার", sub: "সকল সময়" },
+                  { bg: "from-purple-50 to-purple-100", icon: Users, iconBg: "bg-purple-500", value: stats?.totalCustomers || 0, label: "মোট গ্রাহক", sub: "ইউনিক ফোন" },
+                  { bg: "from-orange-50 to-orange-100", icon: TrendingUp, iconBg: "bg-orange-500", value: formatTk(stats?.monthlyRevenue), label: "মাসিক আয়", sub: "এই মাস" },
+                ].map((card, i) => (
+                  <div key={i} className={`bg-gradient-to-br ${card.bg} rounded-2xl p-4 border border-white/50 shadow-sm`}>
+                    <div className={`w-10 h-10 ${card.iconBg} rounded-xl flex items-center justify-center text-white shadow-md mb-3`}><card.icon className="w-5 h-5" /></div>
+                    <p className="text-xl font-extrabold text-gray-900">{card.value}</p>
+                    <p className="text-xs font-bold text-gray-600">{card.label}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">{card.sub}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Active Promotions */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-2xl border border-gray-100 p-5"><p className="text-xs text-gray-400">মোট বিক্রয়</p><h4 className="text-2xl font-black text-gray-900">{formatTk(stats?.totalSales)}</h4></div>
-                <div className="bg-white rounded-2xl border border-gray-100 p-5"><p className="text-xs text-gray-400">গ্রাহক</p><h4 className="text-2xl font-black text-gray-900">{stats?.totalCustomers || 0}</h4></div>
-                <div className="bg-white rounded-2xl border border-gray-100 p-5"><p className="text-xs text-gray-400">প্রমোশন পণ্য</p><h4 className="text-2xl font-black text-gray-900">{products.filter(p => p.featured || p.isBestSeller || p.isNewArrival).length}</h4></div>
+                {[
+                  { icon: TicketPercent, iconBg: "bg-pink-500", bg: "from-pink-50 to-rose-50 border-pink-100", value: marketingCounts.coupons, label: "সক্রিয় কুপন", nav: "coupons", btn: "ম্যানেজ করুন" },
+                  { icon: Image, iconBg: "bg-indigo-500", bg: "from-indigo-50 to-blue-50 border-indigo-100", value: marketingCounts.banners, label: "সক্রিয় ব্যানার", nav: "banners", btn: "ম্যানেজ করুন" },
+                  { icon: Zap, iconBg: "bg-yellow-500", bg: "from-yellow-50 to-amber-50 border-yellow-100", value: marketingCounts.flashSales, label: "চলমান ফ্ল্যাশ সেল", nav: "flash-sale", btn: "ম্যানেজ করুন" },
+                ].map((item, i) => (
+                  <div key={i} className={`bg-gradient-to-br ${item.bg} rounded-2xl border p-5 flex items-center justify-between`}>
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 ${item.iconBg} rounded-xl flex items-center justify-center text-white shadow-md`}><item.icon className="w-6 h-6" /></div>
+                      <div>
+                        <p className="text-2xl font-extrabold text-gray-900">{item.value}</p>
+                        <p className="text-xs font-bold text-gray-600">{item.label}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setActiveNav(item.nav)} className="px-3 py-1.5 bg-white rounded-lg text-xs font-bold text-gray-600 hover:text-vision-blue border border-gray-200 hover:border-vision-blue/30 transition-all shadow-sm">{item.btn} →</button>
+                  </div>
+                ))}
               </div>
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <h4 className="font-bold text-gray-900 mb-4">ক্যাম্পেইন অ্যাকশন</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[{label:"কুপন", nav:"coupons", icon:TicketPercent},{label:"ব্যানার", nav:"banners", icon:Image},{label:"ফ্ল্যাশ সেল", nav:"flash-sale", icon:Zap},{label:"প্রাইস এডিট", nav:"price-edit", icon:Banknote}].map((action) => (
-                    <button key={action.nav} onClick={() => setActiveNav(action.nav)} className="rounded-xl border border-gray-100 p-4 text-left hover:border-vision-blue/40 hover:bg-vision-blue/5 transition-all"><action.icon className="w-5 h-5 text-vision-blue mb-2" /><p className="text-sm font-bold text-gray-700">{action.label}</p></button>
-                  ))}
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Promoted Products */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <h4 className="font-bold text-gray-900 text-sm">প্রমোশন প্রোডাক্ট</h4>
+                    <button onClick={() => setActiveNav("products")} className="text-[10px] font-bold text-vision-blue hover:text-vision-cyan">সব দেখুন →</button>
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    {products.filter(p => p.featured || p.isBestSeller || p.isNewArrival).slice(0, 5).map((p) => (
+                      <div key={p.id || p._id} className="px-5 py-3 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                          {p.image ? <img src={p.image} alt={p.name} className="w-full h-full object-cover" /> : <Package className="w-5 h-5 text-gray-400 m-auto mt-2.5" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-gray-900 truncate">{p.name}</p>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            {p.featured && <span className="text-[9px] font-bold px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">ফিচার্ড</span>}
+                            {p.isBestSeller && <span className="text-[9px] font-bold px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded">বেস্ট সেলার</span>}
+                            {p.isNewArrival && <span className="text-[9px] font-bold px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">নতুন</span>}
+                          </div>
+                        </div>
+                        <span className="text-xs font-extrabold text-emerald-600 flex-shrink-0">৳{Number(p.price).toLocaleString()}</span>
+                      </div>
+                    ))}
+                    {products.filter(p => p.featured || p.isBestSeller || p.isNewArrival).length === 0 && (
+                      <div className="px-5 py-8 text-center text-gray-400 text-xs">
+                        <Tag className="w-8 h-8 mx-auto mb-2 text-gray-200" />
+                        কোনো প্রমোশন প্রোডাক্ট নেই<br />
+                        <button onClick={() => setActiveNav("products")} className="text-vision-blue font-bold mt-1 hover:underline">পণ্যে ট্যাগ যোগ করুন →</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Top Selling + Quick Actions */}
+                <div className="space-y-4">
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-5 py-4 border-b border-gray-100"><h4 className="font-bold text-gray-900 text-sm flex items-center gap-2"><TrendingUp className="w-4 h-4 text-orange-500" /> টপ সেলিং প্রোডাক্ট</h4></div>
+                    <div className="divide-y divide-gray-50">
+                      {topSellingProducts.slice(0, 4).map((p, i) => (
+                        <div key={i} className="px-5 py-3 flex items-center gap-3">
+                          <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-extrabold text-gray-500">{i + 1}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-gray-900 truncate">{p.name}</p>
+                            <p className="text-[10px] text-gray-400">{p.sales} বিক্রি</p>
+                          </div>
+                          <span className="text-xs font-extrabold text-vision-blue flex-shrink-0">৳{Number(p.revenue || 0).toLocaleString()}</span>
+                        </div>
+                      ))}
+                      {topSellingProducts.length === 0 && <div className="px-5 py-6 text-center text-xs text-gray-400">কোনো বিক্রয় তথ্য নেই</div>}
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                    <p className="text-xs font-extrabold uppercase tracking-widest text-gray-400 mb-3">দ্রুত অ্যাকশন</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { label: "কুপন", nav: "coupons", icon: TicketPercent, color: "text-pink-600 bg-pink-50 hover:bg-pink-100" },
+                        { label: "ব্যানার", nav: "banners", icon: Image, color: "text-indigo-600 bg-indigo-50 hover:bg-indigo-100" },
+                        { label: "ফ্ল্যাশ সেল", nav: "flash-sale", icon: Zap, color: "text-yellow-600 bg-yellow-50 hover:bg-yellow-100" },
+                        { label: "প্রাইস এডিট", nav: "price-edit", icon: Banknote, color: "text-emerald-600 bg-emerald-50 hover:bg-emerald-100" },
+                        { label: "পণ্য ট্যাগ", nav: "products", icon: Tag, color: "text-purple-600 bg-purple-50 hover:bg-purple-100" },
+                        { label: "অর্ডার", nav: "orders", icon: ShoppingCart, color: "text-blue-600 bg-blue-50 hover:bg-blue-100" },
+                      ].map((a) => (
+                        <button key={a.nav} onClick={() => setActiveNav(a.nav)} className={`${a.color} rounded-xl px-3 py-2.5 flex items-center gap-2 text-xs font-bold transition-all`}>
+                          <a.icon className="w-4 h-4 flex-shrink-0" />{a.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -68,11 +68,11 @@ const ProductCard = ({ product, variant = "default" }) => {
   }
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-lg border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-cyan-200 hover:shadow-xl">
-      <Link to={href} className="relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br from-white via-cyan-50 to-blue-50" aria-label={`Open ${product.name}`}>
-        <div className="absolute right-4 top-4 rounded-full bg-white/80 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-vision-blue shadow-sm">
-          Vision
-        </div>
+    <article className="relative group flex h-full flex-col overflow-hidden rounded-lg border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-cyan-200 hover:shadow-xl">
+      <div className="absolute right-3 top-3 z-10 rounded-full bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-vision-blue shadow-sm pointer-events-none">
+        Vision
+      </div>
+      <Link to={href} className="flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br from-white via-cyan-50 to-blue-50" aria-label={`Open ${product.name}`}>
         {product.image ? (
           <img src={product.image} alt={product.name} className="h-full w-full object-contain p-8 transition duration-500 group-hover:scale-105" />
         ) : (
