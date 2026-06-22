@@ -141,6 +141,7 @@ import CouponManager from "../components/CouponManager";
 import SiteSettings from "../components/SiteSettings";
 import BannerManager from "../components/BannerManager";
 import FlashSaleManager from "../components/FlashSaleManager";
+import { categories as fallbackCategories } from "../data/data";
 
 // ============================================================
 // Helper Components
@@ -294,7 +295,9 @@ const StockBadge = ({ stock, threshold }) => {
 
   const loadCategories = useCallback(async () => {
     const data = await getCategories();
-    if (Array.isArray(data)) { setCategories(data); setProductCategories(data); }
+    const cats = Array.isArray(data) && data.length > 0 ? data : fallbackCategories;
+    setCategories(cats);
+    setProductCategories(cats);
   }, []);
 
   useEffect(() => {
