@@ -194,10 +194,19 @@ export const getCategories = async () => {
 };
 
 export const createCategory = async (data) => {
+  const fd = data instanceof FormData ? data : (() => {
+    const f = new FormData();
+    Object.entries(data).forEach(([k,v]) => {
+      if (v instanceof File) f.append(k, v);
+      else if (Array.isArray(v)) f.append(k, JSON.stringify(v));
+      else if (v !== undefined && v !== null) f.append(k, v);
+    });
+    return f;
+  })();
   const res = await fetch(`${API_URL}/categories`, {
     method: "POST",
-    headers: { ...getAuthHeaders() },
-    body: data instanceof FormData ? data : (() => { const fd = new FormData(); Object.entries(data).forEach(([k,v]) => fd.append(k, typeof v === 'object' ? JSON.stringify(v) : v)); return fd; })(),
+    headers: getFileHeaders(),
+    body: fd,
   });
   return await handleResponse(res);
 };

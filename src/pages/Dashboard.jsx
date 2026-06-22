@@ -37,7 +37,6 @@ import {
   Mail,
   RotateCcw,
   Cog,
-  PhoneCall,
   CheckCircle2,
   XCircle,
   AlertCircle,
@@ -67,7 +66,6 @@ import {
   Fingerprint,
   Gavel,
   Warehouse,
-  IndianRupee,
   Layers,
   Megaphone,
   TicketPercent,
@@ -342,8 +340,12 @@ const StockBadge = ({ stock, threshold }) => {
   const handleTogglePageStatus = async (id, isActive) => { await updatePageStatus(id, !isActive); loadPages(); };
 
   const handleSavePage = async () => {
-    if (editPage?._id) { await updatePage(editPage._id, { name: editPage.name, title: editPage.title, content: editPage.content, isActive: editPage.isActive }); }
-    else if (editPage) { await createPage({ name: editPage.name, title: editPage.title, content: editPage.content }); }
+    if (editPage?._id) {
+      await updatePage(editPage._id, { name: editPage.name, title: editPage.title, content: editPage.content, isActive: editPage.isActive });
+    } else if (editPage) {
+      const slug = editPage.name.toLowerCase().replace(/[ঀ-৿]/g, (c) => c).replace(/\s+/g, "-").replace(/[^\wঀ-৿-]/g, "").replace(/-+/g, "-").trim() || `page-${Date.now()}`;
+      await createPage({ name: editPage.name, title: editPage.title, content: editPage.content, slug });
+    }
     setEditPage(null); setShowAddPage(false); loadPages();
   };
 
@@ -399,7 +401,7 @@ const StockBadge = ({ stock, threshold }) => {
       label: "প্রোডাক্ট",
       items: [
         { id: "products", icon: ShoppingBag, label: "সকল প্রোডাক্ট" },
-        { id: "price-edit", icon: IndianRupee, label: "প্রাইস এডিট" },
+        { id: "price-edit", icon: Banknote, label: "প্রাইস এডিট" },
         { id: "category-management", icon: Layers, label: "ক্যাটাগরি" },
       ]
     },
@@ -550,10 +552,10 @@ const StockBadge = ({ stock, threshold }) => {
               {/* Second Row Stats */}
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { bg: "bg-gradient-to-br from-yellow-50 to-yellow-100", icon: Clock, iconColor: "text-yellow-600", value: 1, label: "Pending" },
-                  { bg: "bg-gradient-to-br from-green-50 to-green-100", icon: CheckCircle2, iconColor: "text-green-600", value: 9, label: "Completed" },
-                  { bg: "bg-gradient-to-br from-blue-50 to-blue-100", icon: Truck, iconColor: "text-blue-600", value: 284, label: "In Courier" },
-                  { bg: "bg-gradient-to-br from-red-50 to-red-100", icon: XCircle, iconColor: "text-red-600", value: 28, label: "Cancelled" },
+                  { bg: "bg-gradient-to-br from-yellow-50 to-yellow-100", icon: Clock, iconColor: "text-yellow-600", value: stats?.pendingOrders ?? 0, label: "অপেক্ষমাণ" },
+                  { bg: "bg-gradient-to-br from-green-50 to-green-100", icon: CheckCircle2, iconColor: "text-green-600", value: stats?.completedOrders ?? 0, label: "সম্পন্ন" },
+                  { bg: "bg-gradient-to-br from-blue-50 to-blue-100", icon: Truck, iconColor: "text-blue-600", value: stats?.inCourier ?? 0, label: "কুরিয়ারে" },
+                  { bg: "bg-gradient-to-br from-red-50 to-red-100", icon: XCircle, iconColor: "text-red-600", value: stats?.cancelledOrders ?? 0, label: "বাতিল" },
                 ].map((card, i) => (
                   <div key={i} className={`${card.bg} rounded-xl p-4 border border-white/50 shadow-sm flex items-center gap-4`}>
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-white/80 shadow-sm`}>
@@ -599,12 +601,7 @@ const StockBadge = ({ stock, threshold }) => {
                     </h3>
                   </div>
                   <div className="space-y-3">
-                    {[
-                      { name: "রিফ্রিজারেটর ডব্লিউয়া-284", status: "low" },
-                      { name: "এয়ার কন্ডিশনার 1.5 টন", status: "out" },
-                      { name: "মাইক্রোওয়েভ ওভেন 25L", status: "low" },
-                      { name: "ইন্ডাকশন কুকার 2000W", status: "low" },
-                    ].map((item, i) => (
+                    {inventoryAlerts.length > 0 ? inventoryAlerts.map((item, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${item.status === 'out' ? 'bg-red-500' : 'bg-orange-500'}`}></div>
                         <p className="text-xs text-gray-600 flex-1 truncate">{item.name}</p>
@@ -612,7 +609,7 @@ const StockBadge = ({ stock, threshold }) => {
                           {item.status === 'out' ? 'স্টক নেই' : 'কম স্টক'}
                         </span>
                       </div>
-                    ))}
+                    )) : <p className="text-xs text-gray-400 text-center py-4">স্টক স্বাভাবিক</p>}
                   </div>
                 </div>
               </div>
@@ -625,13 +622,7 @@ const StockBadge = ({ stock, threshold }) => {
                     <h3 className="text-sm font-semibold text-gray-800">টপ সেলিং প্রোডাক্ট</h3>
                   </div>
                   <div className="space-y-3">
-                    {[
-                      { name: "Vision Rice Cooker 1.8L Capacity", sales: 145, price: 3200 },
-                      { name: "Vision Blender 500W 2 Jar", sales: 120, price: 4500 },
-                      { name: "Vision Electric Kettle 1.7L", sales: 98, price: 1800 },
-                      { name: "Vision Induction Cooker 2000W", sales: 85, price: 5800 },
-                      { name: "Vision Gas Stove 2 Burner", sales: 72, price: 7200 },
-                    ].map((product, i) => (
+                    {topSellingProducts.length > 0 ? topSellingProducts.map((product, i) => (
                       <div key={i} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
@@ -640,9 +631,9 @@ const StockBadge = ({ stock, threshold }) => {
                             <p className="text-[10px] text-gray-400">{product.sales} বিক্রি</p>
                           </div>
                         </div>
-                        <span className="text-xs font-bold text-yellow-600">৳{product.price.toLocaleString()}</span>
+                        <span className="text-xs font-bold text-yellow-600">৳{Number(product.price || 0).toLocaleString()}</span>
                       </div>
-                    ))}
+                    )) : <p className="text-xs text-gray-400 text-center py-4">কোনো বিক্রয় নেই</p>}
                   </div>
                 </div>
 
@@ -685,35 +676,20 @@ const StockBadge = ({ stock, threshold }) => {
                     </tr>
                   </thead>
                   <tbody className="text-xs">
-                    {[
-                      { id: "ORD-7845624890034-1", customer: "মোহাম্মদ রহমান", date: "2025-12-15", amount: 12500, status: "delivered" },
-                      { id: "ORD-7845624890042-20", customer: "ফাতেমা বেগম", date: "2025-12-14", amount: 8900, status: "shipped" },
-                      { id: "ORD-7845624890059-3", customer: "করিম উদ্দিন", date: "2025-12-14", amount: 15600, status: "pending" },
-                      { id: "ORD-7845624890066-4", customer: "সালমা খাতুন", date: "2025-12-13", amount: 3200, status: "cancelled" },
-                      { id: "ORD-7845624890073-5", customer: "আব্দুল হালিম", date: "2025-12-12", amount: 9800, status: "delivered" },
-                    ].map((order, i) => (
-                      <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2 font-mono text-gray-600">{order.id}</td>
-                        <td className="py-2 text-gray-700">{order.customer}</td>
-                        <td className="py-2 text-gray-500">{order.date}</td>
-                        <td className="py-2 font-bold text-gray-700">৳{order.amount.toLocaleString()}</td>
-                        <td className="py-2">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] ${
-                            order.status === "delivered" ? "bg-green-100 text-green-700" :
-                            order.status === "shipped" ? "bg-blue-100 text-blue-700" :
-                            order.status === "pending" ? "bg-yellow-100 text-yellow-700" :
-                            "bg-red-100 text-red-700"
-                          }`}>
-                            {order.status === "delivered" ? "Delivered" :
-                             order.status === "shipped" ? "Shipped" :
-                             order.status === "pending" ? "Pending" : "Cancelled"}
-                          </span>
-                        </td>
+                    {recentDashboardOrders.length > 0 ? recentDashboardOrders.map((order, i) => (
+                      <tr key={order._id || i} className="border-b border-gray-50 hover:bg-gray-50">
+                        <td className="py-2 font-mono text-gray-600 text-[10px]">{order.orderId || "—"}</td>
+                        <td className="py-2 text-gray-700">{order.customer?.name || "অজানা"}</td>
+                        <td className="py-2 text-gray-500">{order.createdAt ? new Date(order.createdAt).toLocaleDateString("bn-BD") : "—"}</td>
+                        <td className="py-2 font-bold text-gray-700">৳{Number(order.totalAmount || 0).toLocaleString()}</td>
+                        <td className="py-2"><StatusBadge status={order.orderStatus || "pending"} /></td>
                         <td className="py-2 text-right">
-                          <button className="text-orange-500 hover:text-orange-600">বিস্তারিত</button>
+                          <button onClick={() => setActiveNav("orders")} className="text-vision-blue hover:text-vision-cyan text-[10px] font-bold">দেখুন</button>
                         </td>
                       </tr>
-                    ))}
+                    )) : (
+                      <tr><td colSpan="6" className="py-6 text-center text-gray-400">কোনো অর্ডার নেই</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -722,76 +698,80 @@ const StockBadge = ({ stock, threshold }) => {
 
           {/* ============ USER MANAGEMENT ============ */}
           {activeNav === "users" && (
-            <div className="space-y-4 animate-fadeIn">
+            <div className="space-y-5 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800">ইউজার ম্যানেজমেন্ট</h3>
+                  <h3 className="text-2xl font-extrabold text-gray-900">ইউজার ম্যানেজমেন্ট</h3>
+                  <p className="text-sm text-gray-500 mt-1">অ্যাডমিন ও ম্যানেজারদের পরিচালনা করুন</p>
                 </div>
-                <button onClick={() => setShowAddUser(true)} className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
-                  <Plus className="w-4 h-4" />
-                  নতুন অ্যাডমিন তৈরি করুন
-                </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={loadUsers} className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-200 hover:border-vision-blue/30 hover:text-vision-blue transition-all"><RefreshCcw className="w-3.5 h-3.5" /> রিফ্রেশ</button>
+                  <button onClick={() => setShowAddUser(true)} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-vision-blue/25 transition-all">
+                    <UserPlus className="w-4 h-4" /> নতুন অ্যাডমিন
+                  </button>
+                </div>
               </div>
 
-              <div className="flex flex-wrap gap-3">
-                <button className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-semibold">
-                  <List className="w-4 h-4" />
-                  রেজিস্টার্ড ইউজার <span className="bg-white text-orange-600 px-1.5 py-0.5 rounded">18</span>
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs font-semibold">
-                  <Users className="w-4 h-4" />
-                  কাস্টমার (অর্ডার) <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">337</span>
-                </button>
-                <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs font-semibold">
-                  <Users className="w-4 h-4" />
-                  অ্যাডমিন / ম্যানেজার <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">1</span>
-                </button>
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  { bg: "from-blue-50 to-blue-100", icon: Users, iconBg: "bg-blue-500", value: users.length, label: "মোট অ্যাডমিন" },
+                  { bg: "from-green-50 to-green-100", icon: CheckCircle2, iconBg: "bg-green-500", value: users.filter(u => u.isActive !== false).length, label: "সক্রিয়" },
+                  { bg: "from-red-50 to-red-100", icon: XCircle, iconBg: "bg-red-400", value: users.filter(u => u.isActive === false).length, label: "নিষ্ক্রিয়" },
+                ].map((card, i) => (
+                  <div key={i} className={`bg-gradient-to-br ${card.bg} rounded-2xl p-4 border border-white/50 shadow-sm flex items-center gap-3`}>
+                    <div className={`w-10 h-10 ${card.iconBg} rounded-xl flex items-center justify-center text-white shadow-md`}>
+                      <card.icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-extrabold text-gray-900">{card.value}</p>
+                      <p className="text-xs font-medium text-gray-500">{card.label}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="flex items-center gap-2 bg-white rounded-lg border border-gray-200 px-3 py-2 max-w-xs">
-                <Search className="w-4 h-4 text-gray-400" />
-                <input type="text" placeholder="সার্চ করুন..." value={userSearch} onChange={(e) => setUserSearch(e.target.value)} className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 flex-1" />
+              <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3">
+                <Search className="w-4 h-4 text-gray-400 ml-1" />
+                <input type="text" placeholder="নাম, ইমেইল বা ইউজারনেম সার্চ করুন..." value={userSearch} onChange={(e) => setUserSearch(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400" />
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="px-4 py-3 text-left">
-                        <input type="checkbox" className="rounded border-gray-300" />
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">ইমেইল</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">রেজিস্ট্রেশন</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">সর্বশেষ লগইন</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">অ্যাকশন</th>
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      {["ইউজার", "ইউজারনেম", "ইমেইল", "রোল", "স্ট্যাটাস", "তৈরির তারিখ", ""].map((h, i) => (
+                        <th key={i} className={`px-5 py-4 text-[10px] font-bold uppercase text-gray-400 tracking-wider ${i === 6 ? "text-right" : "text-left"}`}>{h}</th>
+                      ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {[
-                      { email: "onikmondol809@gmail.com", reg: "৩ জুন, ২০২৬", lastLogin: "৩ জুন, ২০২৬" },
-                      { email: "onikkumardas@gmail.com", reg: "৩ জুন, ২০২৬", lastLogin: "৩ জুন, ২০২৬" },
-                      { email: "onikkumardas4455@gmail.com", reg: "৩ জুন, ২০২৬", lastLogin: "৩ জুন, ২০২৬" },
-                      { email: "onikmondol611@gmail.com", reg: "২ জুন, ২০২৬", lastLogin: "২ জুন, ২০২৬" },
-                      { email: "mdshawoun5@gmail.com", reg: "৩০ মে, ২০২৬", lastLogin: "৩০ মে, ২০২৬" },
-                      { email: "199anasahmed@gmail.com", reg: "২৪ মে, ২০২৬", lastLogin: "২৪ মে, ২০২৬" },
-                      { email: "afub11@gmail.com", reg: "২৩ মে, ২০২৬", lastLogin: "২৩ মে, ২০২৬" },
-                      { email: "sakir6971@yahoo.com", reg: "২৬ এপ্রি, ২০২৬", lastLogin: "২৬ এপ্রি, ২০২৬" },
-                      { email: "apu2003@gmail.com", reg: "১৮ এপ্রি, ২০২৬", lastLogin: "১৮ এপ্রি, ২০২৬" },
-                    ].map((user, i) => (
-                      <tr key={i} className="hover:bg-gray-50">
-                        <td className="px-4 py-3">
-                          <input type="checkbox" className="rounded border-gray-300" />
+                  <tbody className="divide-y divide-gray-50">
+                    {users.filter(u => !userSearch || u.name?.includes(userSearch) || u.email?.includes(userSearch) || u.username?.includes(userSearch)).map((user) => (
+                      <tr key={user._id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 bg-gradient-to-br from-vision-blue/10 to-vision-cyan/10 rounded-xl flex items-center justify-center">
+                              <span className="text-sm font-extrabold text-vision-blue">{(user.name || user.username || "A").charAt(0).toUpperCase()}</span>
+                            </div>
+                            <p className="text-sm font-bold text-gray-900">{user.name || user.username}</p>
+                          </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">{user.email}</td>
-                        <td className="px-4 py-3 text-sm text-gray-500">{user.reg}</td>
-                        <td className="px-4 py-3 text-sm text-gray-500">{user.lastLogin}</td>
-                        <td className="px-4 py-3 text-right">
-                          <button className="text-red-500 hover:text-red-600">
-                            <Trash2 className="w-4 h-4 inline" />
+                        <td className="px-5 py-4 text-xs font-mono text-gray-500">{user.username || "—"}</td>
+                        <td className="px-5 py-4 text-xs text-gray-600">{user.email || "—"}</td>
+                        <td className="px-5 py-4"><StatusBadge status={user.role || "admin"} /></td>
+                        <td className="px-5 py-4">
+                          <button onClick={() => handleUserToggleStatus(user._id, user.isActive !== false)} className="cursor-pointer">
+                            <StatusBadge status={user.isActive !== false ? "active" : "inactive"} />
                           </button>
+                        </td>
+                        <td className="px-5 py-4 text-xs text-gray-400">{user.createdAt ? new Date(user.createdAt).toLocaleDateString("bn-BD") : "—"}</td>
+                        <td className="px-5 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button onClick={() => setEditUser({ ...user })} className="p-2 text-gray-400 hover:text-vision-blue hover:bg-vision-blue/5 rounded-lg transition-all"><Edit className="w-4 h-4" /></button>
+                          </div>
                         </td>
                       </tr>
                     ))}
+                    {users.length === 0 && <tr><td colSpan="7" className="text-center py-12 text-gray-400 text-xs">কোনো ইউজার নেই — সার্ভার চালু আছে কিনা দেখুন</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -799,16 +779,17 @@ const StockBadge = ({ stock, threshold }) => {
               <Modal isOpen={!!editUser} onClose={() => setEditUser(null)} title="ইউজার সম্পাদনা">
                 {editUser && (
                   <div className="space-y-4">
-                    {["name", "email", "phone"].map((field) => (
-                      <label key={field} className="space-y-1.5">
-                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{field === "name" ? "নাম" : field === "email" ? "ইমেইল" : "ফোন"}</span>
-                        <input value={editUser[field]} onChange={(e) => setEditUser({ ...editUser, [field]: e.target.value })} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" />
+                    {[["name","নাম"], ["email","ইমেইল"], ["phone","ফোন"]].map(([field, label]) => (
+                      <label key={field} className="space-y-1.5 block">
+                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{label}</span>
+                        <input value={editUser[field] || ""} onChange={(e) => setEditUser({ ...editUser, [field]: e.target.value })} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" />
                       </label>
                     ))}
-                    <label className="space-y-1.5">
+                    <label className="space-y-1.5 block">
                       <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">রোল</span>
-                      <select value={editUser.role} onChange={(e) => setEditUser({ ...editUser, role: e.target.value })} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5 bg-white">
-                        <option value="admin">এডমিন</option><option value="superadmin">সুপার এডমিন</option>
+                      <select value={editUser.role || "admin"} onChange={(e) => setEditUser({ ...editUser, role: e.target.value })} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-vision-blue/50 bg-white">
+                        <option value="admin">এডমিন</option>
+                        <option value="superadmin">সুপার এডমিন</option>
                       </select>
                     </label>
                     <div className="flex gap-3 pt-2">
@@ -818,7 +799,7 @@ const StockBadge = ({ stock, threshold }) => {
                   </div>
                 )}
               </Modal>
-              <Modal isOpen={showAddUser} onClose={() => setShowAddUser(false)} title="নতুন ইউজার">
+              <Modal isOpen={showAddUser} onClose={() => setShowAddUser(false)} title="নতুন অ্যাডমিন">
                 <AddUserForm onSuccess={() => { setShowAddUser(false); loadUsers(); }} />
               </Modal>
             </div>
@@ -1094,17 +1075,77 @@ const StockBadge = ({ stock, threshold }) => {
 
           {/* ============ FRAUD CHECKER ============ */}
           {activeNav === "fraud-check" && (
-            <div className="space-y-4 animate-fadeIn">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">ফ্রড চেকার</h3>
-                <p className="text-xs text-gray-500 mt-1">ফোন নম্বর দিয়ে কাস্টমারের অর্ডার ইতিহাস ও ডেলিভারি চেক করুন</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 bg-white rounded-lg border border-gray-200 px-4 py-2 flex-1 max-w-md"><PhoneCall className="w-4 h-4 text-gray-400" />                  <input type="text" placeholder="01000000000" className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 flex-1" />
+            <div className="space-y-5 animate-fadeIn">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-2xl font-extrabold text-gray-900">ফ্রড চেকার</h3>
+                  <p className="text-sm text-gray-500 mt-1">সন্দেহজনক অর্ডার ও ফ্রড প্যাটার্ন বিশ্লেষণ</p>
                 </div>
-                <button className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-semibold hover:bg-orange-700 flex items-center gap-2"><Search className="w-4 h-4" />                  চেক করুন
-                </button>
+                <button onClick={loadFraudData} className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-200 hover:border-vision-blue/30 hover:text-vision-blue transition-all"><RefreshCcw className="w-3.5 h-3.5" /> রিফ্রেশ</button>
               </div>
+
+              {fraudData && (
+                <>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                      { bg: "from-red-50 to-red-100", icon: AlertTriangle, iconBg: "bg-red-500", value: fraudData.totalFlagged || 0, label: "সন্দেহজনক অর্ডার" },
+                      { bg: "from-orange-50 to-orange-100", icon: Flag, iconBg: "bg-orange-500", value: `${fraudData.fraudRate || 0}%`, label: "ফ্রড রেট" },
+                      { bg: "from-yellow-50 to-yellow-100", icon: Banknote, iconBg: "bg-yellow-500", value: `৳${Number(fraudData.highRiskAmount || 0).toLocaleString()}`, label: "হাই রিস্ক পরিমাণ" },
+                      { bg: "from-purple-50 to-purple-100", icon: ScanEye, iconBg: "bg-purple-500", value: (fraudData.commonPatterns || []).length, label: "প্যাটার্ন শনাক্ত" },
+                    ].map((card, i) => (
+                      <div key={i} className={`bg-gradient-to-br ${card.bg} rounded-2xl p-4 border border-white/50 shadow-sm flex items-center gap-3`}>
+                        <div className={`w-10 h-10 ${card.iconBg} rounded-xl flex items-center justify-center text-white shadow-md`}><card.icon className="w-5 h-5" /></div>
+                        <div><p className="text-lg font-extrabold text-gray-900">{card.value}</p><p className="text-xs font-medium text-gray-500">{card.label}</p></div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {(fraudData.commonPatterns || []).length > 0 && (
+                    <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                      <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-orange-500" /> সাধারণ ফ্রড প্যাটার্ন</h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        {(fraudData.commonPatterns || []).map((p, i) => (
+                          <div key={i} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2.5">
+                            <p className="text-xs text-gray-700">{p.pattern}</p>
+                            <span className="text-xs font-extrabold text-red-600 bg-red-50 px-2 py-0.5 rounded-lg">{p.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-5 py-4 border-b border-gray-100"><h4 className="font-bold text-gray-900 text-sm">সন্দেহজনক অর্ডার তালিকা</h4></div>
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-100">
+                          {["অর্ডার", "ক্রেতা", "ফোন", "পরিমাণ", "কারণ", ""].map((h, i) => (
+                            <th key={i} className={`px-5 py-3 text-[10px] font-bold uppercase text-gray-400 tracking-wider ${i === 5 ? "text-right" : "text-left"}`}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {(fraudData.flaggedOrders || []).map((order, i) => (
+                          <tr key={order._id || i} className="hover:bg-red-50/30 transition-colors">
+                            <td className="px-5 py-3 text-xs font-bold text-vision-blue">{order.orderId || "—"}</td>
+                            <td className="px-5 py-3 text-xs text-gray-700">{order.customer?.name || "অজানা"}</td>
+                            <td className="px-5 py-3 text-xs font-mono text-gray-500">{order.customer?.phone || "—"}</td>
+                            <td className="px-5 py-3 text-xs font-extrabold text-gray-900">৳{Number(order.totalAmount || 0).toLocaleString()}</td>
+                            <td className="px-5 py-3 text-[10px] text-red-600 max-w-[180px] truncate">{order.fraudReason || "—"}</td>
+                            <td className="px-5 py-3 text-right">
+                              <button onClick={() => handleResolveFraud(order._id)} className="px-2.5 py-1.5 bg-green-50 text-green-700 rounded-lg text-[10px] font-bold hover:bg-green-100 transition-all">রিজল্ভ</button>
+                            </td>
+                          </tr>
+                        ))}
+                        {(!fraudData.flaggedOrders || fraudData.flaggedOrders.length === 0) && (
+                          <tr><td colSpan="6" className="text-center py-10 text-gray-400 text-xs">কোনো সন্দেহজনক অর্ডার নেই</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+              {!fraudData && <div className="text-center py-12 text-gray-400 text-sm">সার্ভার চালু করুন এবং রিফ্রেশ করুন</div>}
             </div>
           )}
 
@@ -1254,7 +1295,7 @@ const StockBadge = ({ stock, threshold }) => {
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
                 <h4 className="font-bold text-gray-900 mb-4">ক্যাম্পেইন অ্যাকশন</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[{label:"কুপন", nav:"coupons", icon:TicketPercent},{label:"ব্যানার", nav:"banners", icon:Image},{label:"ফ্ল্যাশ সেল", nav:"flash-sale", icon:Zap},{label:"প্রাইস এডিট", nav:"price-edit", icon:IndianRupee}].map((action) => (
+                  {[{label:"কুপন", nav:"coupons", icon:TicketPercent},{label:"ব্যানার", nav:"banners", icon:Image},{label:"ফ্ল্যাশ সেল", nav:"flash-sale", icon:Zap},{label:"প্রাইস এডিট", nav:"price-edit", icon:Banknote}].map((action) => (
                     <button key={action.nav} onClick={() => setActiveNav(action.nav)} className="rounded-xl border border-gray-100 p-4 text-left hover:border-vision-blue/40 hover:bg-vision-blue/5 transition-all"><action.icon className="w-5 h-5 text-vision-blue mb-2" /><p className="text-sm font-bold text-gray-700">{action.label}</p></button>
                   ))}
                 </div>
@@ -1663,10 +1704,17 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
 const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
   const [form, setForm] = useState(category);
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(category?.image || "");
   const [newSubName, setNewSubName] = useState("");
   const [newSubId, setNewSubId] = useState("");
   const [newSubTagline, setNewSubTagline] = useState("");
   const [newSubBanner, setNewSubBanner] = useState("");
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) { setImageFile(file); setImagePreview(URL.createObjectURL(file)); }
+  };
 
   const addSubcategory = () => {
     if (!newSubName || !newSubId) return;
@@ -1687,14 +1735,20 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
     e.preventDefault();
     setSaving(true);
     try {
+      const fd = new FormData();
+      const fields = { id: form.id, name: form.name, shortName: form.shortName || "", tagline: form.tagline || "", description: form.description || "", accent: form.accent || "#0b3474", sortOrder: form.sortOrder || 0, isActive: form.isActive !== false ? "true" : "false" };
+      Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
+      fd.append("subcategories", JSON.stringify(form.subcategories || []));
+      if (imageFile) fd.append("image", imageFile);
+      if (isEdit && form.imagePublicId) fd.append("oldImagePublicId", form.imagePublicId);
+
       const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
       const token = localStorage.getItem("token");
-      const headers = { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       if (isEdit) {
-        await fetch(`${API_URL}/categories/${form._id}`, { method: "PUT", headers, body: JSON.stringify(form) });
+        await fetch(`${API_URL}/categories/${form._id}`, { method: "PUT", headers, body: fd });
       } else {
-        await fetch(`${API_URL}/categories`, { method: "POST", headers, body: JSON.stringify(form) });
+        await fetch(`${API_URL}/categories`, { method: "POST", headers, body: fd });
       }
       onSave();
     } catch (error) {
@@ -1714,6 +1768,29 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+
+      {/* Image */}
+      <div className="bg-gray-50/60 rounded-2xl p-4 border border-gray-100">
+        <CatSection icon="🖼️" label="ক্যাটাগরি ছবি" />
+        <label className="cursor-pointer block">
+          <div className={`relative rounded-xl border-2 border-dashed transition-all overflow-hidden ${imagePreview ? "border-vision-blue/30 bg-white" : "border-gray-200 bg-white hover:border-vision-blue/40"}`}>
+            {imagePreview ? (
+              <div className="relative h-32 flex items-center justify-center">
+                <img src={imagePreview} alt="preview" className="h-full w-full object-contain p-2" />
+                <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                  <p className="text-white text-xs font-bold">পরিবর্তন করুন</p>
+                </div>
+              </div>
+            ) : (
+              <div className="h-24 flex flex-col items-center justify-center gap-1.5 text-gray-300">
+                <Upload className="w-6 h-6" />
+                <p className="text-xs font-bold">ছবি আপলোড করুন (Cloudinary)</p>
+              </div>
+            )}
+          </div>
+          <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+        </label>
+      </div>
 
       {/* Basic Info */}
       <div className="bg-gray-50/60 rounded-2xl p-4 border border-gray-100">

@@ -17,6 +17,10 @@ const Home = () => {
   const latestAddedProducts = uploadedProducts.filter((product, index, list) => (
     list.findIndex((item) => item.image === product.image) === index
   )).slice(0, 12);
+  const allUniqueProducts = products.filter((product, index, list) => (
+    list.findIndex((item) => (item.image || item.visual) === (product.image || product.visual)) === index
+  )).slice(0, 8);
+  const displayFeatured = featuredProducts.length > 0 ? featuredProducts : allUniqueProducts;
   const getCategoryImages = (categoryId) =>
     products.filter((product) => product.category === categoryId && product.image).slice(0, 3);
   const getProductImageForSubcategory = (subcategoryId) =>
@@ -119,7 +123,7 @@ const Home = () => {
             <h2 className="section-title">Featured Products</h2>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredProducts.map((product) => <ProductCard key={product.id} product={product} />)}
+            {displayFeatured.map((product) => <ProductCard key={product.id} product={product} />)}
           </div>
         </div>
       </section>

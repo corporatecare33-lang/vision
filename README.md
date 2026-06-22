@@ -400,6 +400,21 @@ All images (products, banners, logo, favicon, category images, content highlight
 
 ---
 
+## Recent Fixes & Changes
+
+| Fix | File(s) | Description |
+|-----|---------|-------------|
+| Category image upload | `src/pages/Dashboard.jsx`, `src/services/api.js` | CategoryForm now has image upload → Cloudinary. Fixed FormData Content-Type bug in `createCategory` |
+| Page creation fixed | `src/pages/Dashboard.jsx` | `handleSavePage` now sends auto-generated slug so Mongoose validation passes |
+| User management real data | `src/pages/Dashboard.jsx` | User Management section now uses `users` state from MongoDB instead of hardcoded list |
+| Dashboard stats real data | `src/pages/Dashboard.jsx` | Pending/Completed/In Courier/Cancelled cards, top selling, inventory alerts, recent orders — all from DB |
+| Fraud checker UI | `src/pages/Dashboard.jsx` | Full fraud data display: stats cards, pattern list, flagged orders table with resolve button |
+| Featured Products fallback | `src/pages/Home.jsx` | Featured Products section shows fallback products (with `visual`) when no Cloudinary images available |
+| Price edit icon | `src/pages/Dashboard.jsx` | Sidebar "প্রাইস এডিট" icon changed from `IndianRupee` (₹) to `Banknote` |
+| Category form redesign | `src/pages/Dashboard.jsx` | Grouped sections, color picker preview, toggle switch, better subcategory UI |
+
+---
+
 ## Key Dependencies
 
 ```json
