@@ -15,8 +15,8 @@ const Contact = () => {
         <div className="space-y-5">
           {[
             [MapPin, "Visit Us", "Vision Tower, Plot 12, Dhaka, Bangladesh"],
-            [Phone, "Call Us", "+880 123 456 789"],
-            [Mail, "Email Us", "support@vision.com"],
+            [Phone, "Call Us", "+670 7551 3983 / +670 7717 9555"],
+            [Mail, "Email Us", "visionsg26@gmail.com"],
           ].map(([Icon, title, text]) => (
             <div key={title} className="rounded-lg border border-slate-100 bg-white p-6 shadow-sm">
               <Icon className="mb-4 h-8 w-8 text-vision-blue" />

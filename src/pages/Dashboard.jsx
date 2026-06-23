@@ -383,7 +383,7 @@ const StockBadge = ({ stock, threshold }) => {
   const handleDeleteCategory = async (id) => { if (window.confirm("ক্যাটাগরিটি মুছবেন?")) { await deleteCategory(id); loadCategories(); } };
   const handleLogout = () => { apiLogout(); navigate("/login"); };
 
-  const formatTk = (value) => `৳${Number(value || 0).toLocaleString()}`;
+  const formatTk = (value) => `$${Number(value || 0).toLocaleString()}`;
   const dashboardCards = [
     { bg: "bg-gradient-to-br from-blue-50 to-blue-100", iconBg: "bg-blue-500", icon: ShoppingCart, value: stats?.totalOrders || 0, label: "মোট অর্ডার", valueColor: "text-blue-900" },
     { bg: "bg-gradient-to-br from-green-50 to-green-100", iconBg: "bg-green-500", icon: DollarSign, value: formatTk(stats?.totalSales), label: "মোট বিক্রয়", valueColor: "text-green-900" },
@@ -645,7 +645,7 @@ const StockBadge = ({ stock, threshold }) => {
                             <p className="text-[10px] text-gray-400">{product.sales} বিক্রি</p>
                           </div>
                         </div>
-                        <span className="text-xs font-bold text-yellow-600">৳{Number(product.price || 0).toLocaleString()}</span>
+                        <span className="text-xs font-bold text-yellow-600">${Number(product.price || 0).toLocaleString()}</span>
                       </div>
                     )) : <p className="text-xs text-gray-400 text-center py-4">কোনো বিক্রয় নেই</p>}
                   </div>
@@ -695,7 +695,7 @@ const StockBadge = ({ stock, threshold }) => {
                         <td className="py-2 font-mono text-gray-600 text-[10px]">{order.orderId || "—"}</td>
                         <td className="py-2 text-gray-700">{order.customer?.name || "অজানা"}</td>
                         <td className="py-2 text-gray-500">{order.createdAt ? new Date(order.createdAt).toLocaleDateString("bn-BD") : "—"}</td>
-                        <td className="py-2 font-bold text-gray-700">৳{Number(order.totalAmount || 0).toLocaleString()}</td>
+                        <td className="py-2 font-bold text-gray-700">${Number(order.totalAmount || 0).toLocaleString()}</td>
                         <td className="py-2"><StatusBadge status={order.orderStatus || "pending"} /></td>
                         <td className="py-2 text-right">
                           <button onClick={() => setActiveNav("orders")} className="text-vision-blue hover:text-vision-cyan text-[10px] font-bold">দেখুন</button>
@@ -888,11 +888,11 @@ const StockBadge = ({ stock, threshold }) => {
                           </td>
                           <td className="px-5 py-4 text-xs text-gray-600">{product.model}</td>
                           <td className="px-5 py-4">
-                            <span className="text-xs font-extrabold text-emerald-600">৳{Number(product.price).toLocaleString()}</span>
+                            <span className="text-xs font-extrabold text-emerald-600">${Number(product.price).toLocaleString()}</span>
                           </td>
                           <td className="px-5 py-4">
                             {product.originalPrice > 0 ? (
-                              <span className="text-xs text-gray-400 line-through">৳{Number(product.originalPrice).toLocaleString()}</span>
+                              <span className="text-xs text-gray-400 line-through">${Number(product.originalPrice).toLocaleString()}</span>
                             ) : <span className="text-xs text-gray-300">—</span>}
                           </td>
                           <td className="px-5 py-4">
@@ -991,7 +991,7 @@ const StockBadge = ({ stock, threshold }) => {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {["পণ্য", "ক্যাটাগরি", "মূল্য (৳)", "স্টক", "স্ট্যাটাস", ""].map((h, i) => (
+                      {["পণ্য", "ক্যাটাগরি", "মূল্য ($)", "স্টক", "স্ট্যাটাস", ""].map((h, i) => (
                         <th key={i} className={`px-5 py-4 text-[10px] font-bold uppercase text-gray-400 tracking-wider ${i === 5 ? "text-right" : "text-left"}`}>{h}</th>
                       ))}
                     </tr>
@@ -1118,7 +1118,7 @@ const StockBadge = ({ stock, threshold }) => {
                     {[
                       { bg: "from-red-50 to-red-100", icon: AlertTriangle, iconBg: "bg-red-500", value: fraudData.totalFlagged || 0, label: "সন্দেহজনক অর্ডার" },
                       { bg: "from-orange-50 to-orange-100", icon: Flag, iconBg: "bg-orange-500", value: `${fraudData.fraudRate || 0}%`, label: "ফ্রড রেট" },
-                      { bg: "from-yellow-50 to-yellow-100", icon: Banknote, iconBg: "bg-yellow-500", value: `৳${Number(fraudData.highRiskAmount || 0).toLocaleString()}`, label: "হাই রিস্ক পরিমাণ" },
+                      { bg: "from-yellow-50 to-yellow-100", icon: Banknote, iconBg: "bg-yellow-500", value: `$${Number(fraudData.highRiskAmount || 0).toLocaleString()}`, label: "হাই রিস্ক পরিমাণ" },
                       { bg: "from-purple-50 to-purple-100", icon: ScanEye, iconBg: "bg-purple-500", value: (fraudData.commonPatterns || []).length, label: "প্যাটার্ন শনাক্ত" },
                     ].map((card, i) => (
                       <div key={i} className={`bg-gradient-to-br ${card.bg} rounded-2xl p-4 border border-white/50 shadow-sm flex items-center gap-3`}>
@@ -1158,7 +1158,7 @@ const StockBadge = ({ stock, threshold }) => {
                             <td className="px-5 py-3 text-xs font-bold text-vision-blue">{order.orderId || "—"}</td>
                             <td className="px-5 py-3 text-xs text-gray-700">{order.customer?.name || "অজানা"}</td>
                             <td className="px-5 py-3 text-xs font-mono text-gray-500">{order.customer?.phone || "—"}</td>
-                            <td className="px-5 py-3 text-xs font-extrabold text-gray-900">৳{Number(order.totalAmount || 0).toLocaleString()}</td>
+                            <td className="px-5 py-3 text-xs font-extrabold text-gray-900">${Number(order.totalAmount || 0).toLocaleString()}</td>
                             <td className="px-5 py-3 text-[10px] text-red-600 max-w-[180px] truncate">{order.fraudReason || "—"}</td>
                             <td className="px-5 py-3 text-right">
                               <button onClick={() => handleResolveFraud(order._id)} className="px-2.5 py-1.5 bg-green-50 text-green-700 rounded-lg text-[10px] font-bold hover:bg-green-100 transition-all">রিজল্ভ</button>
@@ -1236,7 +1236,7 @@ const StockBadge = ({ stock, threshold }) => {
                           <p className="text-[10px] text-gray-400">{(order.items || []).length}টি আইটেম</p>
                         </td>
                         <td className="px-5 py-4">
-                          <span className="text-sm font-extrabold text-gray-900">৳{order.totalAmount?.toLocaleString()}</span>
+                          <span className="text-sm font-extrabold text-gray-900">${order.totalAmount?.toLocaleString()}</span>
                           <p className="text-[10px] text-gray-400">{order.paymentMethod || "COD"}</p>
                         </td>
                         <td className="px-5 py-4"><StatusBadge status={order.paymentStatus} /></td>
@@ -1377,7 +1377,7 @@ const StockBadge = ({ stock, threshold }) => {
                             {p.isNewArrival && <span className="text-[9px] font-bold px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">নতুন</span>}
                           </div>
                         </div>
-                        <span className="text-xs font-extrabold text-emerald-600 flex-shrink-0">৳{Number(p.price).toLocaleString()}</span>
+                        <span className="text-xs font-extrabold text-emerald-600 flex-shrink-0">${Number(p.price).toLocaleString()}</span>
                       </div>
                     ))}
                     {products.filter(p => p.featured || p.isBestSeller || p.isNewArrival).length === 0 && (
@@ -1402,7 +1402,7 @@ const StockBadge = ({ stock, threshold }) => {
                             <p className="text-xs font-bold text-gray-900 truncate">{p.name}</p>
                             <p className="text-[10px] text-gray-400">{p.sales} বিক্রি</p>
                           </div>
-                          <span className="text-xs font-extrabold text-vision-blue flex-shrink-0">৳{Number(p.revenue || 0).toLocaleString()}</span>
+                          <span className="text-xs font-extrabold text-vision-blue flex-shrink-0">${Number(p.revenue || 0).toLocaleString()}</span>
                         </div>
                       ))}
                       {topSellingProducts.length === 0 && <div className="px-5 py-6 text-center text-xs text-gray-400">কোনো বিক্রয় তথ্য নেই</div>}
@@ -1632,16 +1632,16 @@ const StockBadge = ({ stock, threshold }) => {
                   {(viewOrder.items || []).map((item, i) => (
                     <div key={i} className="px-4 py-3 flex items-center justify-between">
                       <div><p className="text-xs font-bold text-gray-900">{item.name}</p><p className="text-[10px] text-gray-400">x{item.quantity}</p></div>
-                      <span className="text-xs font-extrabold text-vision-blue">৳{(item.price * item.quantity).toLocaleString()}</span>
+                      <span className="text-xs font-extrabold text-vision-blue">${(item.price * item.quantity).toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-xs">
-                <div className="flex justify-between"><span className="text-gray-500">সাবটোটাল</span><span className="font-semibold">৳{((viewOrder.totalAmount || 0) - (viewOrder.deliveryCharge || 0) + (viewOrder.discount || 0)).toLocaleString()}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">ডেলিভারি চার্জ</span><span className="font-semibold">৳{viewOrder.deliveryCharge || 0}</span></div>
-                {viewOrder.discount > 0 && <div className="flex justify-between text-green-600"><span>ছাড়</span><span className="font-semibold">-৳{viewOrder.discount}</span></div>}
-                <div className="flex justify-between pt-2 border-t border-gray-200 text-sm font-extrabold text-gray-900"><span>মোট</span><span>৳{viewOrder.totalAmount?.toLocaleString()}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">সাবটোটাল</span><span className="font-semibold">${((viewOrder.totalAmount || 0) - (viewOrder.deliveryCharge || 0) + (viewOrder.discount || 0)).toLocaleString()}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">ডেলিভারি চার্জ</span><span className="font-semibold">${viewOrder.deliveryCharge || 0}</span></div>
+                {viewOrder.discount > 0 && <div className="flex justify-between text-green-600"><span>ছাড়</span><span className="font-semibold">-${viewOrder.discount}</span></div>}
+                <div className="flex justify-between pt-2 border-t border-gray-200 text-sm font-extrabold text-gray-900"><span>মোট</span><span>${viewOrder.totalAmount?.toLocaleString()}</span></div>
               </div>
               {viewOrder.notes && <p className="text-xs text-gray-500 bg-yellow-50 border border-yellow-100 rounded-xl p-3">📝 {viewOrder.notes}</p>}
               <div className="flex gap-2 pt-1">
@@ -1828,10 +1828,10 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
       <div className="bg-gray-50/80 rounded-2xl p-4 space-y-3">
         <SectionLabel>মূল্য ও রঙ</SectionLabel>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="বিক্রয় মূল্য (৳)" required>
+          <FormField label="বিক্রয় মূল্য ($)" required>
             <input className={inputCls} type="number" value={form.price || ""} onChange={e => set("price", e.target.value)} placeholder="25000" required />
           </FormField>
-          <FormField label="আসল মূল্য (৳)">
+          <FormField label="আসল মূল্য ($)">
             <input className={inputCls} type="number" value={form.originalPrice || ""} onChange={e => set("originalPrice", e.target.value)} placeholder="28000" />
           </FormField>
         </div>
@@ -2228,7 +2228,7 @@ const ShippingManager = () => {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-extrabold text-gray-400">৳</span>
+              <span className="text-lg font-extrabold text-gray-400">$</span>
               <input type="number" value={shipping[z.key] || 0} onChange={e => setShipping(s => ({ ...s, [z.key]: Number(e.target.value) }))}
                 className="flex-1 text-2xl font-extrabold text-gray-900 bg-transparent border-b-2 border-gray-200 focus:border-vision-blue outline-none py-1 transition-colors" />
             </div>
@@ -2237,7 +2237,7 @@ const ShippingManager = () => {
         ))}
       </div>
       <div className="bg-blue-50 rounded-2xl border border-blue-100 p-4">
-        <p className="text-xs font-bold text-blue-700">💡 টিপস: ফ্রি শিপিং থ্রেশহোল্ড ৳{(shipping.freeThreshold || 2000).toLocaleString()} সেট আছে। এর বেশি অর্ডারে ডেলিভারি চার্জ নেওয়া হবে না।</p>
+        <p className="text-xs font-bold text-blue-700">💡 টিপস: ফ্রি শিপিং থ্রেশহোল্ড ${(shipping.freeThreshold || 2000).toLocaleString()} সেট আছে। এর বেশি অর্ডারে ডেলিভারি চার্জ নেওয়া হবে না।</p>
       </div>
     </div>
   );
@@ -3295,7 +3295,7 @@ const FilterSettingsManager = () => {
               <div>
                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">লেবেল *</label>
                 <input value={newRange.label} onChange={e => setNewRange({ ...newRange, label: e.target.value })}
-                  placeholder="যেমন: Under Tk 20,000"
+                  placeholder="যেমন: Under $20,000"
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50" />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -3335,7 +3335,7 @@ const FilterSettingsManager = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-100">
-                  {["লেবেল", "সর্বনিম্ন (৳)", "সর্বোচ্চ (৳)", ""].map((h, i) => (
+                  {["লেবেল", "সর্বনিম্ন ($)", "সর্বোচ্চ ($)", ""].map((h, i) => (
                     <th key={i} className={`px-5 py-4 text-[10px] font-bold uppercase text-gray-400 tracking-wider ${i === 3 ? "text-right" : "text-left"}`}>{h}</th>
                   ))}
                 </tr>
@@ -3344,8 +3344,8 @@ const FilterSettingsManager = () => {
                 {ranges.map((r) => (
                   <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4 text-sm font-bold text-gray-900">{r.label}</td>
-                    <td className="px-5 py-4 text-sm text-gray-600">{r.min !== undefined ? `৳${Number(r.min).toLocaleString()}` : "—"}</td>
-                    <td className="px-5 py-4 text-sm text-gray-600">{r.max !== undefined ? `৳${Number(r.max).toLocaleString()}` : "—"}</td>
+                    <td className="px-5 py-4 text-sm text-gray-600">{r.min !== undefined ? `$${Number(r.min).toLocaleString()}` : "—"}</td>
+                    <td className="px-5 py-4 text-sm text-gray-600">{r.max !== undefined ? `$${Number(r.max).toLocaleString()}` : "—"}</td>
                     <td className="px-5 py-4 text-right">
                       <button onClick={() => handleDelete(r.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                         <Trash2 className="w-4 h-4" />

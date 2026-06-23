@@ -184,11 +184,11 @@ const ProductDetails = () => {
 
             <div className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex flex-wrap items-end gap-4">
-                <div className="text-4xl font-black text-vision-blue">Tk {selectedPrice.toLocaleString()}</div>
+                <div className="text-4xl font-black text-vision-blue">${selectedPrice.toLocaleString()}</div>
                 {showDiscount && (
                   <>
-                    <div className="pb-1 text-lg font-bold text-slate-400 line-through">Tk {originalPrice.toLocaleString()}</div>
-                    <span className="mb-1 rounded bg-cyan-50 px-3 py-1 text-xs font-black text-vision-blue">Save Tk {savedAmount.toLocaleString()}</span>
+                    <div className="pb-1 text-lg font-bold text-slate-400 line-through">${originalPrice.toLocaleString()}</div>
+                    <span className="mb-1 rounded bg-cyan-50 px-3 py-1 text-xs font-black text-vision-blue">Save ${savedAmount.toLocaleString()}</span>
                   </>
                 )}
               </div>
@@ -218,7 +218,7 @@ const ProductDetails = () => {
                       className={`rounded-lg border bg-white p-4 text-left transition ${selectedOption === index ? "border-vision-cyan bg-cyan-50 ring-2 ring-cyan-100" : "border-slate-200 hover:border-cyan-300"}`}
                     >
                       <div className="text-sm font-black text-slate-900">{option.label}</div>
-                      <div className="mt-1 text-xs font-bold text-vision-blue">Tk {option.price.toLocaleString()}</div>
+                      <div className="mt-1 text-xs font-bold text-vision-blue">${option.price.toLocaleString()}</div>
                     </button>
                   ))}
                 </div>
@@ -254,7 +254,7 @@ const ProductDetails = () => {
               </div>
               <div>
                 <div className="text-xs font-bold uppercase text-slate-500">Call for order</div>
-                <div className="text-lg font-black text-vision-dark">+880 123 456 789</div>
+                <div className="text-lg font-black text-vision-dark">+670 7551 3983</div>
               </div>
             </div>
 

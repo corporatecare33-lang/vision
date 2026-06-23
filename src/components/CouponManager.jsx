@@ -150,8 +150,8 @@ const CouponManager = () => {
               {coupons.map((c) => (
                 <tr key={c._id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-5 py-4"><span className="text-sm font-bold text-gray-900">{c.code}</span></td>
-                  <td className="px-5 py-4"><span className="text-xs font-extrabold text-emerald-600">{c.discountType === "percentage" ? `${c.discountValue}%` : `৳${c.discountValue}`}</span></td>
-                  <td className="px-5 py-4 text-xs text-gray-500">{c.maxDiscount ? `৳${c.maxDiscount}` : "—"}</td>
+                  <td className="px-5 py-4"><span className="text-xs font-extrabold text-emerald-600">{c.discountType === "percentage" ? `${c.discountValue}%` : `$${c.discountValue}`}</span></td>
+                  <td className="px-5 py-4 text-xs text-gray-500">{c.maxDiscount ? `$${c.maxDiscount}` : "—"}</td>
                   <td className="px-5 py-4 text-xs text-gray-500">{c.usedCount || 0}/{c.usageLimit || "∞"}</td>
                   <td className="px-5 py-4">
                     <button onClick={() => handleToggle(c)} className="cursor-pointer"><StatusBadge status={c.isActive ? "active" : "inactive"} /></button>

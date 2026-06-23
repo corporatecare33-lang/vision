@@ -14,7 +14,7 @@ const escapePdfText = (value) =>
 
 const downloadPdf = (order) => {
   const deliveryLabel = order.deliveryArea === "inside" ? "Inside Dhaka" : "Outside Dhaka";
-  const formatTk = (value) => `Tk ${Number(value || 0).toLocaleString("en-US")}`;
+  const format$= (value) => `$${Number(value || 0).toLocaleString("en-US")}`;
   const fitText = (value, maxLength) => {
     const text = String(value ?? "");
     return text.length > maxLength ? `${text.slice(0, maxLength - 3)}...` : text;
@@ -208,7 +208,7 @@ const ThankYou = () => {
                       <td className="py-3 font-bold text-slate-950">{item.name}</td>
                       <td className="py-3 text-slate-600">{item.option}</td>
                       <td className="py-3 text-center">{item.quantity}</td>
-                      <td className="py-3 text-right font-black text-vision-blue">Tk {item.price * item.quantity}</td>
+                      <td className="py-3 text-right font-black text-vision-blue">${item.price * item.quantity}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -216,9 +216,9 @@ const ThankYou = () => {
             </div>
 
             <div className="ml-auto mt-6 max-w-sm space-y-2 border-t border-slate-200 pt-4">
-              <div className="flex justify-between"><span>Subtotal</span><strong>Tk {order.subtotal}</strong></div>
-              <div className="flex justify-between"><span>Delivery</span><strong>Tk {order.deliveryFee}</strong></div>
-              <div className="flex justify-between text-xl font-black text-vision-dark"><span>Total</span><span>Tk {order.total}</span></div>
+              <div className="flex justify-between"><span>Subtotal</span><strong>${order.subtotal}</strong></div>
+              <div className="flex justify-between"><span>Delivery</span><strong>${order.deliveryFee}</strong></div>
+              <div className="flex justify-between text-xl font-black text-vision-dark"><span>Total</span><span>${order.total}</span></div>
             </div>
           </div>
         </div>

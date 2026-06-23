@@ -175,7 +175,7 @@ const FlashSaleManager = () => {
                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">পণ্য নির্বাচন করুন</label>
                 <select value={form.productId} onChange={handleProductSelect} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 bg-white" required>
                   <option value="">পণ্য নির্বাচন করুন</option>
-                  {products.map(p => <option key={p.id} value={p.id}>{p.name} - ৳{p.price}</option>)}
+                  {products.map(p => <option key={p.id} value={p.id}>{p.name} - ${p.price}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -183,7 +183,7 @@ const FlashSaleManager = () => {
                   <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">ডিসকাউন্ট টাইপ</label>
                   <select value={form.discountType} onChange={(e) => setForm({ ...form, discountType: e.target.value })} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 bg-white">
                     <option value="percentage">শতাংশ (%)</option>
-                    <option value="fixed">নির্দিষ্ট মূল্য (৳)</option>
+                    <option value="fixed">নির্দিষ্ট মূল্য ($)</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
@@ -268,11 +268,11 @@ const FlashSaleManager = () => {
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
                       <span className="text-gray-400">ডিসকাউন্ট:</span>
-                      <span className="font-bold text-red-600 ml-1">{sale.discountValue}{sale.discountType === "percentage" ? "%" : "৳"}</span>
+                      <span className="font-bold text-red-600 ml-1">{sale.discountValue}{sale.discountType === "percentage" ? "%" : "$"}</span>
                     </div>
                     <div>
                       <span className="text-gray-400">সেল মূল্য:</span>
-                      <span className="font-bold text-green-600 ml-1">৳{Math.max(0, discountedPrice).toLocaleString()}</span>
+                      <span className="font-bold text-green-600 ml-1">${Math.max(0, discountedPrice).toLocaleString()}</span>
                     </div>
                     <div className="flex items-center gap-1 text-gray-400">
                       <span>শুরু:</span>

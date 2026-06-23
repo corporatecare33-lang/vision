@@ -60,7 +60,7 @@ const Cart = ({ mode = "cart" }) => {
       if (!res.ok) { setCouponError(data.message || "কুপন সঠিক নয়"); }
       else {
         if (data.minOrderAmount && subtotal < data.minOrderAmount) {
-          setCouponError(`কমপক্ষে Tk ${data.minOrderAmount} অর্ডার করলে কুপন প্রযোজ্য`);
+          setCouponError(`কমপক্ষে $${data.minOrderAmount} অর্ডার করলে কুপন প্রযোজ্য`);
         } else {
           setCoupon(data);
         }
@@ -144,7 +144,7 @@ const Cart = ({ mode = "cart" }) => {
                       <Link to={`/products/${item.id}`} className="text-xl font-black text-vision-dark hover:text-vision-blue">{item.name}</Link>
                       {item.option && <div className="mt-2 text-sm font-bold text-slate-500">Option: {item.option}</div>}
                       <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-                        <div className="text-2xl font-black text-vision-blue">Tk {(item.price * item.quantity).toLocaleString()}</div>
+                        <div className="text-2xl font-black text-vision-blue">${(item.price * item.quantity).toLocaleString()}</div>
                         <div className="flex items-center gap-3">
                           <div className="grid grid-cols-3 overflow-hidden rounded-md border border-slate-200">
                             <button type="button" onClick={() => updateQuantity(item, item.quantity - 1)} className="grid h-10 w-10 place-items-center hover:bg-cyan-50"><Minus className="h-4 w-4" /></button>
@@ -163,10 +163,10 @@ const Cart = ({ mode = "cart" }) => {
                 <h2 className="mb-5 text-xl font-black uppercase text-vision-dark">Cart Summary</h2>
                 <div className="space-y-3 border-b border-slate-100 pb-5 text-sm">
                   <div className="flex justify-between"><span className="text-slate-600">Items</span><span className="font-black">{itemCount}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-600">Subtotal</span><span className="font-black">Tk {subtotal.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-600">Subtotal</span><span className="font-black">${subtotal.toLocaleString()}</span></div>
                 </div>
                 <div className="flex justify-between py-5 text-xl font-black text-vision-dark">
-                  <span>Total</span><span>Tk {subtotal.toLocaleString()}</span>
+                  <span>Total</span><span>${subtotal.toLocaleString()}</span>
                 </div>
                 <Link to="/order" className="inline-flex w-full items-center justify-center rounded-md bg-vision-blue px-6 py-3 font-black text-white transition hover:bg-vision-dark">
                   Proceed to Order
@@ -226,12 +226,12 @@ const Cart = ({ mode = "cart" }) => {
                           <input type="radio" name="delivery-area" value={opt.value} checked={deliveryArea === opt.value} onChange={() => setDeliveryArea(opt.value)} className="accent-vision-blue" />
                           {opt.label}
                         </span>
-                        <span className="font-black text-vision-blue">Tk {opt.fee}</span>
+                        <span className="font-black text-vision-blue">${opt.fee}</span>
                       </label>
                     ))}
                   </div>
                   {subtotal >= (shipping.freeThreshold || 2000) && (
-                    <p className="mt-2 text-sm font-bold text-green-600">🎉 Free delivery! Tk {shipping.freeThreshold || 2000}+ অর্ডারে বিনামূল্যে ডেলিভারি।</p>
+                    <p className="mt-2 text-sm font-bold text-green-600">🎉 Free delivery! ${shipping.freeThreshold || 2000}+ অর্ডারে বিনামূল্যে ডেলিভারি।</p>
                   )}
                 </div>
 
@@ -284,7 +284,7 @@ const Cart = ({ mode = "cart" }) => {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right font-black text-vision-dark">Tk {(item.price * item.quantity).toLocaleString()}</div>
+                        <div className="text-right font-black text-vision-dark">${(item.price * item.quantity).toLocaleString()}</div>
                       </article>
                     ))}
                   </div>
@@ -298,7 +298,7 @@ const Cart = ({ mode = "cart" }) => {
                       <div className="flex items-center justify-between rounded-lg bg-green-50 border border-green-200 px-4 py-3">
                         <div className="flex items-center gap-2 text-sm font-bold text-green-700">
                           <CheckCircle className="h-4 w-4" />
-                          <span>{coupon.code} — {coupon.discountType === "percentage" ? `${coupon.discountValue}% ছাড়` : `Tk ${coupon.discountValue} ছাড়`}</span>
+                          <span>{coupon.code} — {coupon.discountType === "percentage" ? `${coupon.discountValue}% ছাড়` : `$${coupon.discountValue} ছাড়`}</span>
                         </div>
                         <button type="button" onClick={() => { setCoupon(null); setCouponCode(""); }} className="text-red-400 hover:text-red-600"><XCircle className="h-4 w-4" /></button>
                       </div>
@@ -318,13 +318,13 @@ const Cart = ({ mode = "cart" }) => {
 
                   <div className="space-y-2 border-b border-slate-200 py-4 text-sm">
                     <div className="flex justify-between"><span>Items:</span><span className="font-bold">{itemCount}</span></div>
-                    <div className="flex justify-between"><span>Subtotal:</span><span className="font-bold">Tk {subtotal.toLocaleString()}</span></div>
-                    <div className="flex justify-between"><span>Delivery Charge:</span><span className="font-bold">{deliveryFee === 0 ? <span className="text-green-600">FREE</span> : `Tk ${deliveryFee}`}</span></div>
-                    {couponDiscount > 0 && <div className="flex justify-between text-green-600"><span>Coupon Discount:</span><span className="font-bold">-Tk {couponDiscount.toLocaleString()}</span></div>}
+                    <div className="flex justify-between"><span>Subtotal:</span><span className="font-bold">${subtotal.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span>Delivery Charge:</span><span className="font-bold">{deliveryFee === 0 ? <span className="text-green-600">FREE</span> : `$${deliveryFee}`}</span></div>
+                    {couponDiscount > 0 && <div className="flex justify-between text-green-600"><span>Coupon Discount:</span><span className="font-bold">-${couponDiscount.toLocaleString()}</span></div>}
                   </div>
 
                   <div className="flex justify-between py-4 text-xl font-black text-vision-dark">
-                    <span>Total:</span><span>Tk {total.toLocaleString()}</span>
+                    <span>Total:</span><span>${total.toLocaleString()}</span>
                   </div>
 
                   <div className="flex gap-3 rounded-md border border-cyan-200 bg-cyan-50 p-4 text-sm font-bold leading-6 text-vision-dark">

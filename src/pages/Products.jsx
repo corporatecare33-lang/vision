@@ -7,10 +7,10 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const DEFAULT_PRICE_RANGES = [
   { id: "all", label: "All Prices" },
-  { id: "under-20000", label: "Under Tk 20,000", max: 20000 },
-  { id: "20000-40000", label: "Tk 20,000 - 40,000", min: 20000, max: 40000 },
-  { id: "40000-70000", label: "Tk 40,000 - 70,000", min: 40000, max: 70000 },
-  { id: "70000-plus", label: "Tk 70,000+", min: 70000 },
+  { id: "under-20000", label: "Under $20,000", max: 20000 },
+  { id: "20000-40000", label: "$20,000 - $40,000", min: 20000, max: 40000 },
+  { id: "40000-70000", label: "$40,000 - $70,000", min: 40000, max: 70000 },
+  { id: "70000-plus", label: "$70,000+", min: 70000 },
 ];
 
 const Products = () => {

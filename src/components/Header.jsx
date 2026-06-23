@@ -104,7 +104,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="container-custom flex h-16 items-center justify-between lg:h-20">
         <Link to="/" className="flex items-center gap-3" onClick={close}>
-          <img src={logoUrl || assetPath("/vision-logo.jpeg")} alt={siteName || "Vision Smart"} width="160" height="56" decoding="async" className="h-12 w-auto object-contain lg:h-14" />
+          <img src={logoUrl || assetPath("/vision-logo.jpeg")} alt={siteName || "Vision Smart"} width="130" height="44" decoding="async" className="h-10 w-auto object-contain lg:h-12" />
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
@@ -206,7 +206,7 @@ const Header = () => {
                         <div className="truncate font-black text-slate-950">{product.name}</div>
                         <div className="text-xs font-bold uppercase tracking-wider text-vision-blue">{product.model}</div>
                       </div>
-                      <div className="font-black text-vision-blue">Tk {product.price}</div>
+                      <div className="font-black text-vision-blue">${product.price}</div>
                     </button>
                   ))
                 ) : (

@@ -8,27 +8,29 @@ import { assetPath } from "../data/data";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
+const FALLBACK_SLIDES = [
+  { image: "/hero/non-forst-english-1920x550.jpg", alt: "Vision Appliances" },
+  { image: "/hero/side-by-side.jpg", alt: "Vision Refrigerators" },
+  { image: "/hero/single-door.jpg", alt: "Vision Products" },
+];
+
 const Hero = () => {
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
   useEffect(() => {
     const fetchBanners = async () => {
       try {
         setLoading(true);
-        setError(false);
         const res = await fetch(`${API_URL}/banners`);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           setSlides(data);
         } else {
-          setSlides([]);
+          setSlides(FALLBACK_SLIDES);
         }
-      } catch (error) {
-        console.error("Failed to load banners:", error);
-        setError(true);
-        setSlides([]);
+      } catch {
+        setSlides(FALLBACK_SLIDES);
       } finally {
         setLoading(false);
       }

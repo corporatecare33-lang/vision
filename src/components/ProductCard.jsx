@@ -60,7 +60,7 @@ const ProductCard = ({ product, variant = "default" }) => {
             <h4 className="mb-1 truncate text-[12px] font-bold uppercase tracking-tight text-vision-blue group-hover:underline">
               {product.name}
             </h4>
-            <div className="text-[13px] font-black text-slate-950">Tk {product.price}</div>
+            <div className="text-[13px] font-black text-slate-950">${product.price}</div>
           </div>
         </Link>
       </div>
@@ -104,13 +104,13 @@ const ProductCard = ({ product, variant = "default" }) => {
               >
                 {optionPrices.map((option, index) => (
                   <option key={option.label} value={index}>
-                    {option.label} - Tk {option.price}
+                    {option.label} - ${option.price}
                   </option>
                 ))}
               </select>
             </label>
           )}
-          <div className="text-xl font-bold text-vision-blue">Tk {selectedPrice}</div>
+          <div className="text-xl font-bold text-vision-blue">${selectedPrice}</div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
