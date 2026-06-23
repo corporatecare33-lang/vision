@@ -99,7 +99,17 @@ const Cart = ({ mode = "cart" }) => {
         throw new Error(errData.message || "অর্ডার সেভ করতে সমস্যা হয়েছে");
       }
       const data = await res.json();
-      const savedOrder = { ...orderData, orderId: data.orderId || `VSN-${Date.now()}`, createdAt: new Date().toISOString(), subtotal, couponDiscount };
+      const savedOrder = { 
+        ...orderData, 
+        id: data.orderId || `VSN-${Date.now()}`, 
+        orderId: data.orderId || `VSN-${Date.now()}`, 
+        createdAt: new Date().toISOString(), 
+        subtotal, 
+        deliveryFee, 
+        couponDiscount, 
+        total, 
+        itemCount 
+      };
       localStorage.setItem("vision-last-order", JSON.stringify(savedOrder));
       saveCartItems([]);
       setItems([]);
@@ -231,7 +241,7 @@ const Cart = ({ mode = "cart" }) => {
                     ))}
                   </div>
                   {subtotal >= (shipping.freeThreshold || 2000) && (
-                    <p className="mt-2 text-sm font-bold text-green-600">🎉 Free delivery! ${shipping.freeThreshold || 2000}+ অর্ডারে বিনামূল্যে ডেলিভারি।</p>
+                    <p className="mt-2 text-sm font-bold text-green-600">🎉 Free delivery! ${shipping.freeThreshold || 2000}+ order gets free delivery.</p>
                   )}
                 </div>
 

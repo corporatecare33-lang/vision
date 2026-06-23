@@ -412,20 +412,37 @@ categories.forEach((category) => {
 export const products = categories.flatMap((category) =>
   category.subcategories.flatMap((subcategory) => {
     const seed = productSeeds[subcategory.id];
-    const productCount = imageBySubcategory[subcategory.id]?.length || 4;
-    return Array.from({ length: productCount }, (_, index) => ({
-      id: `${subcategory.id}-${index + 1}`,
-      name: index === 0 ? seed[0] : `${seed[0]} ${index + 1}`,
-      model: `${seed[1]}-${index + 1}0`,
-      price: `${(index + 1) * 4500 + (category.id === "refrigerators" ? 48500 : category.id === "tvs" ? 28500 : 8500)}`,
-      category: category.id,
-      subcategory: subcategory.id,
-      visual: visualBySubcategory[subcategory.id],
-      color: category.accent,
-      image: assetPath(imageBySubcategory[subcategory.id]?.[index] || (category.id === "refrigerators" ? refrigeratorImages[index] : undefined)),
-      description: subcategory.tagline,
-      specs: [seed[2], seed[3], seed[4]],
-    }));
+    const imagesForSubcategory = imageBySubcategory[subcategory.id] || (category.id === "refrigerators" ? refrigeratorImages : []);
+    const productCount = imagesForSubcategory.length || 4;
+    return Array.from({ length: productCount }, (_, index) => {
+      // Create gallery images using other images from the same subcategory
+      const galleryImages = [];
+      for (let i = 0; i < imagesForSubcategory.length; i++) {
+        if (i !== index) {
+          galleryImages.push(assetPath(imagesForSubcategory[i]));
+        }
+      }
+      // Create price options using the specs
+      const priceOptions = seed.slice(2).map((label, i) => ({
+        label,
+        price: (index + 1) * 4500 + (category.id === "refrigerators" ? 48500 : category.id === "tvs" ? 28500 : 8500) + i * 1000
+      }));
+      return {
+        id: `${subcategory.id}-${index + 1}`,
+        name: index === 0 ? seed[0] : `${seed[0]} ${index + 1}`,
+        model: `${seed[1]}-${index + 1}0`,
+        price: `${(index + 1) * 4500 + (category.id === "refrigerators" ? 48500 : category.id === "tvs" ? 28500 : 8500)}`,
+        category: category.id,
+        subcategory: subcategory.id,
+        visual: visualBySubcategory[subcategory.id],
+        color: category.accent,
+        image: assetPath(imagesForSubcategory[index] || imagesForSubcategory[0]),
+        images: galleryImages,
+        description: subcategory.tagline,
+        specs: [seed[2], seed[3], seed[4]],
+        priceOptions: priceOptions
+      };
+    });
   })
 );
 

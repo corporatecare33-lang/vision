@@ -164,11 +164,11 @@ const StatusBadge = ({ status }) => {
     outofstock: "bg-red-100 text-red-700 border-red-200",
   };
   const labels = {
-    pending: "বাকি", processing: "প্রক্রিয়াধীন", shipped: "কুরিয়ারে",
-    delivered: "ডেলিভারি সম্পন্ন", cancelled: "বাতিল", returned: "রিটার্ন",
-    paid: "পরিশোধিত", failed: "ব্যর্থ", refunded: "রিফান্ড",
-    active: "সক্রিয়", inactive: "নিষ্ক্রিয়", superadmin: "সুপার এডমিন", admin: "এডমিন",
-    instock: "স্টকে আছে", lowstock: "স্টক শেষের পথে", outofstock: "স্টক নেই",
+    pending: "Pending", processing: "Processing", shipped: "Shipped",
+    delivered: "Delivered", cancelled: "Cancelled", returned: "Returned",
+    paid: "Paid", failed: "Failed", refunded: "Refunded",
+    active: "Active", inactive: "Inactive", superadmin: "Super Admin", admin: "Admin",
+    instock: "In Stock", lowstock: "Low Stock", outofstock: "Out of Stock",
   };
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border ${colors[status] || colors.pending} whitespace-nowrap`}>
@@ -340,9 +340,9 @@ const StockBadge = ({ stock, threshold }) => {
         }),
       });
       const data = await res.json();
-      if (res.ok) { alert(`✅ Steadfast এ পাঠানো হয়েছে!\nTracking: ${data.trackingCode || data.consignment?.tracking_code || "N/A"}`); loadOrders(); }
-      else { alert(`❌ ব্যর্থ: ${data.message || "Unknown error"}`); }
-    } catch { alert("❌ কুরিয়ার সার্ভারে সংযোগ ব্যর্থ"); }
+      if (res.ok) { alert(`✅ Sent to Steadfast!\nTracking: ${data.trackingCode || data.consignment?.tracking_code || "N/A"}`); loadOrders(); }
+      else { alert(`❌ Failed: ${data.message || "Unknown error"}`); }
+    } catch { alert("❌ Failed to connect to courier server"); }
   };
   const handleUserToggleStatus = async (id, currentStatus) => { await updateUserStatus(id, !currentStatus); loadUsers(); };
   const handleUpdateUser = async () => { if (editUser) { await updateUser(editUser._id, { name: editUser.name, email: editUser.email, phone: editUser.phone, role: editUser.role }); setEditUser(null); loadUsers(); } };
@@ -359,12 +359,12 @@ const StockBadge = ({ stock, threshold }) => {
       }
       setEditPage(null); setShowAddPage(false); loadPages();
     } catch (err) {
-      alert(err.message || "পেজ সেভ করতে সমস্যা হয়েছে");
+      alert(err.message || "Error saving page");
     }
   };
 
-  const handleDeletePage = async (id) => { if (window.confirm("পেজটি মুছবেন?")) { await deletePage(id); loadPages(); } };
-  const handleDeleteProduct = async (id) => { if (window.confirm("পণ্যটি মুছবেন?")) { await deleteProduct(id); loadProducts(); } };
+  const handleDeletePage = async (id) => { if (window.confirm("Delete this page?")) { await deletePage(id); loadPages(); } };
+  const handleDeleteProduct = async (id) => { if (window.confirm("Delete this product?")) { await deleteProduct(id); loadProducts(); } };
   const handleSaveProduct = async () => { setShowAddProduct(false); setEditProduct(null); loadProducts(); };
 
   const handleStockAdjust = async () => {
@@ -380,15 +380,15 @@ const StockBadge = ({ stock, threshold }) => {
     setEditCategory(null); setShowAddCategory(false); loadCategories();
   };
 
-  const handleDeleteCategory = async (id) => { if (window.confirm("ক্যাটাগরিটি মুছবেন?")) { await deleteCategory(id); loadCategories(); } };
+  const handleDeleteCategory = async (id) => { if (window.confirm("Delete this category?")) { await deleteCategory(id); loadCategories(); } };
   const handleLogout = () => { apiLogout(); navigate("/login"); };
 
   const formatTk = (value) => `$${Number(value || 0).toLocaleString()}`;
   const dashboardCards = [
-    { bg: "bg-gradient-to-br from-blue-50 to-blue-100", iconBg: "bg-blue-500", icon: ShoppingCart, value: stats?.totalOrders || 0, label: "মোট অর্ডার", valueColor: "text-blue-900" },
-    { bg: "bg-gradient-to-br from-green-50 to-green-100", iconBg: "bg-green-500", icon: DollarSign, value: formatTk(stats?.totalSales), label: "মোট বিক্রয়", valueColor: "text-green-900" },
-    { bg: "bg-gradient-to-br from-purple-50 to-purple-100", iconBg: "bg-purple-500", icon: Users, value: stats?.totalCustomers || 0, label: "মোট গ্রাহক", valueColor: "text-purple-900" },
-    { bg: "bg-gradient-to-br from-orange-50 to-orange-100", iconBg: "bg-orange-500", icon: Package, value: stats?.totalProducts || 0, label: "মোট পণ্য", valueColor: "text-orange-900" },
+    { bg: "bg-gradient-to-br from-blue-50 to-blue-100", iconBg: "bg-blue-500", icon: ShoppingCart, value: stats?.totalOrders || 0, label: "Total Orders", valueColor: "text-blue-900" },
+    { bg: "bg-gradient-to-br from-green-50 to-green-100", iconBg: "bg-green-500", icon: DollarSign, value: formatTk(stats?.totalSales), label: "Total Sales", valueColor: "text-green-900" },
+    { bg: "bg-gradient-to-br from-purple-50 to-purple-100", iconBg: "bg-purple-500", icon: Users, value: stats?.totalCustomers || 0, label: "Total Customers", valueColor: "text-purple-900" },
+    { bg: "bg-gradient-to-br from-orange-50 to-orange-100", iconBg: "bg-orange-500", icon: Package, value: stats?.totalProducts || 0, label: "Total Products", valueColor: "text-orange-900" },
   ];
   const salesBars = salesReport?.monthly?.length ? salesReport.monthly : [];
   const maxSales = Math.max(...salesBars.map((item) => Number(item.sales || 0)), 1);
@@ -412,66 +412,66 @@ const StockBadge = ({ stock, threshold }) => {
 
   const sidebarGroups = [
     {
-      label: "প্রোডাক্ট",
+      label: "Products",
       items: [
-        { id: "products", icon: ShoppingBag, label: "সকল প্রোডাক্ট" },
-        { id: "price-edit", icon: Banknote, label: "প্রাইস এডিট" },
-        { id: "category-management", icon: Layers, label: "ক্যাটাগরি" },
+        { id: "products", icon: ShoppingBag, label: "All Products" },
+        { id: "price-edit", icon: Banknote, label: "Price Edit" },
+        { id: "category-management", icon: Layers, label: "Categories" },
       ]
     },
     {
-      label: "মার্কেটিং",
+      label: "Marketing",
       items: [
-        { id: "marketing", icon: Megaphone, label: "মার্কেটিং" },
-        { id: "coupons", icon: TicketPercent, label: "কুপন" },
-        { id: "banners", icon: Image, label: "ব্যানার" },
-        { id: "flash-sale", icon: Zap, label: "ফ্ল্যাশ সেল" },
+        { id: "marketing", icon: Megaphone, label: "Marketing" },
+        { id: "coupons", icon: TicketPercent, label: "Coupons" },
+        { id: "banners", icon: Image, label: "Banners" },
+        { id: "flash-sale", icon: Zap, label: "Flash Sale" },
       ]
     },
     {
-      label: "অর্ডার ও ডেলিভারি",
+      label: "Orders & Delivery",
       items: [
-        { id: "orders", icon: ShoppingCart, label: "অর্ডার" },
-        { id: "shipping-charge", icon: Truck, label: "শিপিং চার্জ" },
-        { id: "courier-api", icon: Cable, label: "কুরিয়ার API" },
+        { id: "orders", icon: ShoppingCart, label: "Orders" },
+        { id: "shipping-charge", icon: Truck, label: "Shipping Charge" },
+        { id: "courier-api", icon: Cable, label: "Courier API" },
       ]
     },
     {
-      label: "পেমেন্ট",
+      label: "Payment",
       items: [
-        { id: "bkash", icon: SmartphoneIcon, label: "বিকাশ পেমেন্ট" },
-        { id: "payment-settings", icon: Wallet, label: "পেমেন্ট সেটিংস" },
+        { id: "bkash", icon: SmartphoneIcon, label: "bKash Payment" },
+        { id: "payment-settings", icon: Wallet, label: "Payment Settings" },
       ]
     },
     {
-      label: "কন্টেন্ট",
+      label: "Content",
       items: [
-        { id: "page-management", icon: FileText, label: "পেজ ম্যানেজ" },
-        { id: "frontend-content", icon: Layers, label: "ফ্রন্টএন্ড কন্টেন্ট" },
-        { id: "filter-settings", icon: Filter, label: "ফিল্টার সেটিংস" },
+        { id: "page-management", icon: FileText, label: "Page Management" },
+        { id: "frontend-content", icon: Layers, label: "Frontend Content" },
+        { id: "filter-settings", icon: Filter, label: "Filter Settings" },
       ]
     },
     {
-      label: "এনালিটিক্স ও ইন্টিগ্রেশন",
+      label: "Analytics & Integration",
       items: [
-        { id: "tracking-pixel", icon: LineChart, label: "ট্র্যাকিং পিক্সেল" },
+        { id: "tracking-pixel", icon: LineChart, label: "Tracking Pixel" },
         { id: "facebook-pixel", icon: Radio, label: "Facebook Pixel" },
-        { id: "smtp-email", icon: MailIcon, label: "SMTP ইমেইল" },
+        { id: "smtp-email", icon: MailIcon, label: "SMTP Email" },
       ]
     },
     {
-      label: "সাধারণ সেটিংস",
+      label: "General Settings",
       items: [
-        { id: "general-settings", icon: Settings, label: "জেনারেল সেটিংস" },
+        { id: "general-settings", icon: Settings, label: "General Settings" },
       ]
     },
     {
-      label: "সেটিংস",
+      label: "Settings",
       items: [
-        { id: "site-settings", icon: Store, label: "সাইট সেটিংস" },
-        { id: "fraud-check", icon: ScanEye, label: "ফ্রড চেকার" },
-        { id: "users", icon: Users, label: "ইউজার ম্যানেজমেন্ট" },
-        { id: "stock-management", icon: Warehouse, label: "স্টক ম্যানেজমেন্ট" },
+        { id: "site-settings", icon: Store, label: "Site Settings" },
+        { id: "fraud-check", icon: ScanEye, label: "Fraud Checker" },
+        { id: "users", icon: Users, label: "User Management" },
+        { id: "stock-management", icon: Warehouse, label: "Stock Management" },
       ]
     },
   ];
@@ -486,7 +486,7 @@ const StockBadge = ({ stock, threshold }) => {
               <LayoutDashboard className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-extrabold text-gray-900">এডমিন প্যানেল</h1>
+              <h1 className="text-lg font-extrabold text-gray-900">Admin Panel</h1>
               <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Vision E-commerce</p>
             </div>
           </div>
@@ -515,8 +515,8 @@ const StockBadge = ({ stock, threshold }) => {
           ))}
         </nav>
         <div className="mt-auto p-4 border-t border-gray-100 space-y-1.5 bg-gray-50/50">
-          <button onClick={() => navigate("/")} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-white hover:text-vision-blue hover:shadow-sm transition-all duration-200"><Home className="w-4.5 h-4.5" /> হোমপেজ</button>
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-red-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200"><LogOut className="w-4.5 h-4.5" /> লগআউট</button>
+          <button onClick={() => navigate("/")} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-white hover:text-vision-blue hover:shadow-sm transition-all duration-200"><Home className="w-4.5 h-4.5" /> Homepage</button>
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold text-red-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200"><LogOut className="w-4.5 h-4.5" /> Logout</button>
         </div>
       </aside>
 
@@ -530,8 +530,8 @@ const StockBadge = ({ stock, threshold }) => {
               <BellRing className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-              <div className="text-right"><p className="text-sm font-semibold text-gray-900">superadmin</p><p className="text-xs text-gray-500">এডমিন</p></div>
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center text-white font-bold">ক</div>
+              <div className="text-right"><p className="text-sm font-semibold text-gray-900">superadmin</p><p className="text-xs text-gray-500">Admin</p></div>
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center text-white font-bold">A</div>
             </div>
           </div>
         </header>
@@ -544,7 +544,7 @@ const StockBadge = ({ stock, threshold }) => {
               <div className="flex items-center justify-between mb-4">
                 <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-gray-700 text-sm hover:bg-gray-50">
                   <Home className="w-4 h-4" />
-                  হোমপেজ
+                  Homepage
                 </button>
               </div>
 
@@ -566,10 +566,10 @@ const StockBadge = ({ stock, threshold }) => {
               {/* Second Row Stats */}
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { bg: "bg-gradient-to-br from-yellow-50 to-yellow-100", icon: Clock, iconColor: "text-yellow-600", value: stats?.pendingOrders ?? 0, label: "অপেক্ষমাণ" },
-                  { bg: "bg-gradient-to-br from-green-50 to-green-100", icon: CheckCircle2, iconColor: "text-green-600", value: stats?.completedOrders ?? 0, label: "সম্পন্ন" },
-                  { bg: "bg-gradient-to-br from-blue-50 to-blue-100", icon: Truck, iconColor: "text-blue-600", value: stats?.inCourier ?? 0, label: "কুরিয়ারে" },
-                  { bg: "bg-gradient-to-br from-red-50 to-red-100", icon: XCircle, iconColor: "text-red-600", value: stats?.cancelledOrders ?? 0, label: "বাতিল" },
+                  { bg: "bg-gradient-to-br from-yellow-50 to-yellow-100", icon: Clock, iconColor: "text-yellow-600", value: stats?.pendingOrders ?? 0, label: "Pending" },
+                  { bg: "bg-gradient-to-br from-green-50 to-green-100", icon: CheckCircle2, iconColor: "text-green-600", value: stats?.completedOrders ?? 0, label: "Completed" },
+                  { bg: "bg-gradient-to-br from-blue-50 to-blue-100", icon: Truck, iconColor: "text-blue-600", value: stats?.inCourier ?? 0, label: "In Courier" },
+                  { bg: "bg-gradient-to-br from-red-50 to-red-100", icon: XCircle, iconColor: "text-red-600", value: stats?.cancelledOrders ?? 0, label: "Cancelled" },
                 ].map((card, i) => (
                   <div key={i} className={`${card.bg} rounded-xl p-4 border border-white/50 shadow-sm flex items-center gap-4`}>
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-white/80 shadow-sm`}>
@@ -588,7 +588,7 @@ const StockBadge = ({ stock, threshold }) => {
                 {/* Sales Analytics */}
                 <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-gray-800">বিক্রয় অ্যানালিটিক্স</h3>
+                    <h3 className="text-sm font-semibold text-gray-800">Sales Analytics</h3>
                   </div>
                   <div className="h-48 flex items-end justify-between gap-2 px-4">
                     {salesBars.map((data, i) => {
@@ -611,7 +611,7 @@ const StockBadge = ({ stock, threshold }) => {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                       <AlertTriangle className="w-4 h-4 text-orange-500" />
-                      ইন-ভেন্টরি অ্যালার্ট
+                      Inventory Alerts
                     </h3>
                   </div>
                   <div className="space-y-3">
@@ -620,10 +620,10 @@ const StockBadge = ({ stock, threshold }) => {
                         <div className={`w-2 h-2 rounded-full ${item.status === 'out' ? 'bg-red-500' : 'bg-orange-500'}`}></div>
                         <p className="text-xs text-gray-600 flex-1 truncate">{item.name}</p>
                         <span className={`text-[10px] px-2 py-0.5 rounded ${item.status === 'out' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                          {item.status === 'out' ? 'স্টক নেই' : 'কম স্টক'}
+                          {item.status === 'out' ? 'Out of Stock' : 'Low Stock'}
                         </span>
                       </div>
-                    )) : <p className="text-xs text-gray-400 text-center py-4">স্টক স্বাভাবিক</p>}
+                    )) : <p className="text-xs text-gray-400 text-center py-4">Stock Normal</p>}
                   </div>
                 </div>
               </div>
@@ -633,7 +633,7 @@ const StockBadge = ({ stock, threshold }) => {
                 {/* Top Selling Products */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-gray-800">টপ সেলিং প্রোডাক্ট</h3>
+                    <h3 className="text-sm font-semibold text-gray-800">Top Selling Products</h3>
                   </div>
                   <div className="space-y-3">
                     {topSellingProducts.length > 0 ? topSellingProducts.map((product, i) => (
@@ -642,26 +642,26 @@ const StockBadge = ({ stock, threshold }) => {
                           <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
                           <div className="flex-1">
                             <p className="text-xs text-gray-700 truncate">{product.name}</p>
-                            <p className="text-[10px] text-gray-400">{product.sales} বিক্রি</p>
+                            <p className="text-[10px] text-gray-400">{product.sales} sold</p>
                           </div>
                         </div>
                         <span className="text-xs font-bold text-yellow-600">${Number(product.price || 0).toLocaleString()}</span>
                       </div>
-                    )) : <p className="text-xs text-gray-400 text-center py-4">কোনো বিক্রয় নেই</p>}
+                    )) : <p className="text-xs text-gray-400 text-center py-4">No sales yet</p>}
                   </div>
                 </div>
 
                 {/* Quick Links */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-semibold text-gray-800">কুইক অ্যাকশন</h3>
+                    <h3 className="text-sm font-semibold text-gray-800">Quick Actions</h3>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { label: "পণ্য যোগ করুন", icon: Package, bg: "bg-yellow-100 text-yellow-700" },
-                      { label: "অর্ডার দেখুন", icon: ShoppingCart, bg: "bg-blue-100 text-blue-700" },
-                      { label: "ক্যাটাগরি", icon: Layers, bg: "bg-orange-100 text-orange-700" },
-                      { label: "কুপন", icon: Tags, bg: "bg-green-100 text-green-700" },
+                      { label: "Add Product", icon: Package, bg: "bg-yellow-100 text-yellow-700" },
+                      { label: "View Orders", icon: ShoppingCart, bg: "bg-blue-100 text-blue-700" },
+                      { label: "Categories", icon: Layers, bg: "bg-orange-100 text-orange-700" },
+                      { label: "Coupons", icon: Tags, bg: "bg-green-100 text-green-700" },
                     ].map((link, i) => (
                       <button key={i} className={`${link.bg} rounded-lg p-3 text-center hover:opacity-80 transition-all`}>
                         <link.icon className="w-5 h-5 mx-auto mb-1" />
@@ -675,34 +675,34 @@ const StockBadge = ({ stock, threshold }) => {
               {/* Recent Orders */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-gray-800">সাম্প্রতিক অর্ডার</h3>
-                  <button className="text-xs text-orange-500 hover:text-orange-600">সব দেখুন →</button>
+                  <h3 className="text-sm font-semibold text-gray-800">Recent Orders</h3>
+                  <button className="text-xs text-orange-500 hover:text-orange-600">View All →</button>
                 </div>
                 <table className="w-full text-left">
                   <thead>
                     <tr className="text-xs text-gray-500 border-b border-gray-100">
-                      <th className="pb-2">আইডি</th>
-                      <th className="pb-2">কাস্টমার</th>
-                      <th className="pb-2">তারিখ</th>
-                      <th className="pb-2">পরিমাণ</th>
-                      <th className="pb-2">স্ট্যাটাস</th>
-                      <th className="pb-2 text-right">অ্যাকশন</th>
+                      <th className="pb-2">ID</th>
+                      <th className="pb-2">Customer</th>
+                      <th className="pb-2">Date</th>
+                      <th className="pb-2">Amount</th>
+                      <th className="pb-2">Status</th>
+                      <th className="pb-2 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="text-xs">
                     {recentDashboardOrders.length > 0 ? recentDashboardOrders.map((order, i) => (
                       <tr key={order._id || i} className="border-b border-gray-50 hover:bg-gray-50">
                         <td className="py-2 font-mono text-gray-600 text-[10px]">{order.orderId || "—"}</td>
-                        <td className="py-2 text-gray-700">{order.customer?.name || "অজানা"}</td>
+                        <td className="py-2 text-gray-700">{order.customer?.name || "Unknown"}</td>
                         <td className="py-2 text-gray-500">{order.createdAt ? new Date(order.createdAt).toLocaleDateString("bn-BD") : "—"}</td>
                         <td className="py-2 font-bold text-gray-700">${Number(order.totalAmount || 0).toLocaleString()}</td>
                         <td className="py-2"><StatusBadge status={order.orderStatus || "pending"} /></td>
                         <td className="py-2 text-right">
-                          <button onClick={() => setActiveNav("orders")} className="text-vision-blue hover:text-vision-cyan text-[10px] font-bold">দেখুন</button>
+                          <button onClick={() => setActiveNav("orders")} className="text-vision-blue hover:text-vision-cyan text-[10px] font-bold">View</button>
                         </td>
                       </tr>
                     )) : (
-                      <tr><td colSpan="6" className="py-6 text-center text-gray-400">কোনো অর্ডার নেই</td></tr>
+                      <tr><td colSpan="6" className="py-6 text-center text-gray-400">No orders yet</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -715,22 +715,22 @@ const StockBadge = ({ stock, threshold }) => {
             <div className="space-y-5 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-gray-900">ইউজার ম্যানেজমেন্ট</h3>
-                  <p className="text-sm text-gray-500 mt-1">অ্যাডমিন ও ম্যানেজারদের পরিচালনা করুন</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900">User Management</h3>
+                  <p className="text-sm text-gray-500 mt-1">Manage admins and managers</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={loadUsers} className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-200 hover:border-vision-blue/30 hover:text-vision-blue transition-all"><RefreshCcw className="w-3.5 h-3.5" /> রিফ্রেশ</button>
+                  <button onClick={loadUsers} className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-200 hover:border-vision-blue/30 hover:text-vision-blue transition-all"><RefreshCcw className="w-3.5 h-3.5" /> Refresh</button>
                   <button onClick={() => setShowAddUser(true)} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-vision-blue/25 transition-all">
-                    <UserPlus className="w-4 h-4" /> নতুন অ্যাডমিন
+                    <UserPlus className="w-4 h-4" /> New Admin
                   </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { bg: "from-blue-50 to-blue-100", icon: Users, iconBg: "bg-blue-500", value: users.length, label: "মোট অ্যাডমিন" },
-                  { bg: "from-green-50 to-green-100", icon: CheckCircle2, iconBg: "bg-green-500", value: users.filter(u => u.isActive !== false).length, label: "সক্রিয়" },
-                  { bg: "from-red-50 to-red-100", icon: XCircle, iconBg: "bg-red-400", value: users.filter(u => u.isActive === false).length, label: "নিষ্ক্রিয়" },
+                  { bg: "from-blue-50 to-blue-100", icon: Users, iconBg: "bg-blue-500", value: users.length, label: "Total Admins" },
+                  { bg: "from-green-50 to-green-100", icon: CheckCircle2, iconBg: "bg-green-500", value: users.filter(u => u.isActive !== false).length, label: "Active" },
+                  { bg: "from-red-50 to-red-100", icon: XCircle, iconBg: "bg-red-400", value: users.filter(u => u.isActive === false).length, label: "Inactive" },
                 ].map((card, i) => (
                   <div key={i} className={`bg-gradient-to-br ${card.bg} rounded-2xl p-4 border border-white/50 shadow-sm flex items-center gap-3`}>
                     <div className={`w-10 h-10 ${card.iconBg} rounded-xl flex items-center justify-center text-white shadow-md`}>
@@ -746,14 +746,14 @@ const StockBadge = ({ stock, threshold }) => {
 
               <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3">
                 <Search className="w-4 h-4 text-gray-400 ml-1" />
-                <input type="text" placeholder="নাম, ইমেইল বা ইউজারনেম সার্চ করুন..." value={userSearch} onChange={(e) => setUserSearch(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400" />
+                <input type="text" placeholder="Search name, email or username..." value={userSearch} onChange={(e) => setUserSearch(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400" />
               </div>
 
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {["ইউজার", "ইউজারনেম", "ইমেইল", "রোল", "স্ট্যাটাস", "তৈরির তারিখ", ""].map((h, i) => (
+                      {["User", "Username", "Email", "Role", "Status", "Created Date", ""].map((h, i) => (
                         <th key={i} className={`px-5 py-4 text-[10px] font-bold uppercase text-gray-400 tracking-wider ${i === 6 ? "text-right" : "text-left"}`}>{h}</th>
                       ))}
                     </tr>
@@ -785,35 +785,35 @@ const StockBadge = ({ stock, threshold }) => {
                         </td>
                       </tr>
                     ))}
-                    {users.length === 0 && <tr><td colSpan="7" className="text-center py-12 text-gray-400 text-xs">কোনো ইউজার নেই — সার্ভার চালু আছে কিনা দেখুন</td></tr>}
+                    {users.length === 0 && <tr><td colSpan="7" className="text-center py-12 text-gray-400 text-xs">No users yet — check if server is running</td></tr>}
                   </tbody>
                 </table>
               </div>
 
-              <Modal isOpen={!!editUser} onClose={() => setEditUser(null)} title="ইউজার সম্পাদনা">
+              <Modal isOpen={!!editUser} onClose={() => setEditUser(null)} title="Edit User">
                 {editUser && (
                   <div className="space-y-4">
-                    {[["name","নাম"], ["email","ইমেইল"], ["phone","ফোন"]].map(([field, label]) => (
+                    {[["name","Name"], ["email","Email"], ["phone","Phone"]].map(([field, label]) => (
                       <label key={field} className="space-y-1.5 block">
                         <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">{label}</span>
                         <input value={editUser[field] || ""} onChange={(e) => setEditUser({ ...editUser, [field]: e.target.value })} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" />
                       </label>
                     ))}
                     <label className="space-y-1.5 block">
-                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">রোল</span>
+                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Role</span>
                       <select value={editUser.role || "admin"} onChange={(e) => setEditUser({ ...editUser, role: e.target.value })} className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-vision-blue/50 bg-white">
-                        <option value="admin">এডমিন</option>
-                        <option value="superadmin">সুপার এডমিন</option>
+                        <option value="admin">Admin</option>
+                        <option value="superadmin">Super Admin</option>
                       </select>
                     </label>
                     <div className="flex gap-3 pt-2">
-                      <button onClick={() => setEditUser(null)} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all">বাতিল</button>
-                      <button onClick={handleUpdateUser} className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-bold hover:shadow-lg transition-all">আপডেট করুন</button>
+                      <button onClick={() => setEditUser(null)} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all">Cancel</button>
+                      <button onClick={handleUpdateUser} className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-bold hover:shadow-lg transition-all">Update</button>
                     </div>
                   </div>
                 )}
               </Modal>
-              <Modal isOpen={showAddUser} onClose={() => setShowAddUser(false)} title="নতুন অ্যাডমিন">
+              <Modal isOpen={showAddUser} onClose={() => setShowAddUser(false)} title="New Admin">
                 <AddUserForm onSuccess={() => { setShowAddUser(false); loadUsers(); }} />
               </Modal>
             </div>
@@ -824,37 +824,37 @@ const StockBadge = ({ stock, threshold }) => {
             <div className="space-y-6 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-gray-900">পণ্য ম্যানেজমেন্ট</h3>
-                  <p className="text-sm text-gray-500 mt-1">পণ্য যোগ, সম্পাদনা, মূল্য পরিবর্তন ও পরিচালনা</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900">Product Management</h3>
+                  <p className="text-sm text-gray-500 mt-1">Add, edit, update prices, and manage products</p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <button onClick={async () => {
-                    if (!window.confirm("ডেমো পণ্যগুলো Cloudinary তে আপলোড করে MongoDB তে সেভ করবেন? এটা কিছুক্ষণ সময় নেবে।")) return;
+                    if (!window.confirm("Upload demo products to Cloudinary and save to MongoDB? This may take a few moments.")) return;
                     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
                     const token = localStorage.getItem("token");
                     try {
                       const res = await fetch(`${API_URL}/admin/seed-products`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
                       const d = await res.json();
-                      alert(d.message || (res.ok ? "✅ সম্পন্ন!" : "❌ সমস্যা হয়েছে"));
+                      alert(d.message || (res.ok ? "✅ Done!" : "❌ Error occurred"));
                       if (res.ok) loadProducts();
-                    } catch { alert("❌ সংযোগ ব্যর্থ — সার্ভার চালু আছে কিনা দেখুন"); }
+                    } catch { alert("❌ Connection failed — check if server is running"); }
                   }} className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl text-xs font-bold hover:border-vision-blue hover:text-vision-blue transition-all">
-                    <RefreshCcw className="w-3.5 h-3.5" /> ডেমো ইম্পোর্ট
+                    <RefreshCcw className="w-3.5 h-3.5" /> Import Demo
                   </button>
                   <button onClick={() => { setEditProduct({ name: "", model: "", price: "", originalPrice: "", category: "", subcategory: "", description: "", specs: "", stock: 10, lowStockThreshold: 5, isActive: true, color: "#0b3474", priceOptions: [] }); setShowAddProduct(true); }} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-vision-blue/25 transition-all">
-                    <Plus className="w-4 h-4" /> নতুন পণ্য
+                    <Plus className="w-4 h-4" /> New Product
                   </button>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-200 px-4 py-2 flex-1 min-w-[200px]">
                   <Search className="w-4 h-4 text-gray-400" />
-                  <input type="text" placeholder="নাম, মডেল বা আইডি দিয়ে সার্চ করুন..." value={productSearch} onChange={(e) => setProductSearch(e.target.value)} className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 flex-1" />
+                  <input type="text" placeholder="Search name, model, or ID..." value={productSearch} onChange={(e) => setProductSearch(e.target.value)} className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 flex-1" />
                 </div>
                 <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-200 px-3 py-2">
                   <Filter className="w-4 h-4 text-gray-400" />
                   <select value={productCategoryFilter} onChange={(e) => setProductCategoryFilter(e.target.value)} className="bg-transparent border-none outline-none text-xs font-semibold text-gray-600">
-                    <option value="all">সব ক্যাটাগরি</option>
+                    <option value="all">All Categories</option>
                     {productCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
@@ -863,7 +863,7 @@ const StockBadge = ({ stock, threshold }) => {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {["পণ্য", "মডেল", "মূল্য", "মূল মূল্য", "ক্যাটাগরি", "স্টক", "স্ট্যাটাস", ""].map((h, i) => (
+                      {["Product", "Model", "Price", "Original Price", "Category", "Stock", "Status", ""].map((h, i) => (
                         <th key={i} className={`px-5 py-4 text-[10px] font-bold uppercase text-gray-400 tracking-wider ${i === 7 ? "text-right" : "text-left"}`}>{h}</th>
                       ))}
                     </tr>
@@ -908,19 +908,19 @@ const StockBadge = ({ stock, threshold }) => {
                           <td className="px-5 py-4"><StatusBadge status={product.isActive !== false ? "active" : "inactive"} /></td>
                           <td className="px-5 py-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              <button onClick={() => { setEditProduct({ ...product }); setShowAddProduct(true); }} className="p-2 text-gray-400 hover:text-vision-blue hover:bg-vision-blue/5 rounded-lg transition-all" title="সম্পাদনা"><Edit className="w-4 h-4" /></button>
-                              <button onClick={() => handleDeleteProduct(product.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="মুছুন"><Trash2 className="w-4 h-4" /></button>
+                              <button onClick={() => { setEditProduct({ ...product }); setShowAddProduct(true); }} className="p-2 text-gray-400 hover:text-vision-blue hover:bg-vision-blue/5 rounded-lg transition-all" title="Edit"><Edit className="w-4 h-4" /></button>
+                              <button onClick={() => handleDeleteProduct(product.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete"><Trash2 className="w-4 h-4" /></button>
                             </div>
                           </td>
                         </tr>
                       );
                     })}
-                    {products.length === 0 && <tr><td colSpan="8" className="text-center py-12 text-gray-400 text-xs">কোনো পণ্য নেই</td></tr>}
+                    {products.length === 0 && <tr><td colSpan="8" className="text-center py-12 text-gray-400 text-xs">No products yet</td></tr>}
                   </tbody>
                 </table>
               </div>
               {/* Add/Edit Product Modal */}
-              <Modal isOpen={showAddProduct} onClose={() => { setShowAddProduct(false); setEditProduct(null); }} title={editProduct?.id ? "পণ্য সম্পাদনা করুন" : "নতুন পণ্য যোগ করুন"} size="xl">
+              <Modal isOpen={showAddProduct} onClose={() => { setShowAddProduct(false); setEditProduct(null); }} title={editProduct?.id ? "পণ্য Edit Aরুন" : "নতুন পণ্য যোগ Aরুন"} size="xl">
                 {editProduct && (
                   <ProductForm product={editProduct} categories={productCategories} onSave={handleSaveProduct} onCancel={() => { setShowAddProduct(false); setEditProduct(null); }} isEdit={!!editProduct?.id} />
                 )}
@@ -933,20 +933,20 @@ const StockBadge = ({ stock, threshold }) => {
             <div className="space-y-5 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-gray-900">স্টক ম্যানেজমেন্ট</h3>
-                  <p className="text-sm text-gray-500 mt-1">পণ্যের স্টক ট্র্যাক ও আপডেট করুন</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900">Stock Management</h3>
+                  <p className="text-sm text-gray-500 mt-1">পণ্যের স্টA ট্র্যাA ও আপডেট Aরুন</p>
                 </div>
                 <button onClick={() => { loadStockProducts(); loadStockAlerts(); }} className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-200 hover:border-vision-blue/30 hover:text-vision-blue transition-all">
-                  <RefreshCcw className="w-3.5 h-3.5" /> রিফ্রেশ
+                  <RefreshCcw className="w-3.5 h-3.5" /> Refresh
                 </button>
               </div>
 
               {/* Real Stats from DB */}
               <div className="grid grid-cols-3 gap-4">
                 {[
-                  { bg: "bg-white border border-gray-100", icon: Package, iconBg: "bg-orange-50", iconColor: "text-orange-500", value: stockAlerts.total || stockProducts.length, label: "মোট প্রোডাক্ট" },
-                  { bg: "bg-yellow-50 border border-yellow-100", icon: AlertTriangle, iconBg: "bg-yellow-100", iconColor: "text-yellow-600", value: (stockAlerts.lowStock || []).length, label: "লো স্টক" },
-                  { bg: "bg-red-50 border border-red-100", icon: XCircle, iconBg: "bg-red-100", iconColor: "text-red-500", value: (stockAlerts.outOfStock || []).length, label: "স্টক শেষ" },
+                  { bg: "bg-white border border-gray-100", icon: Package, iconBg: "bg-orange-50", iconColor: "text-orange-500", value: stockAlerts.total || stockProducts.length, label: "মোট Products" },
+                  { bg: "bg-yellow-50 border border-yellow-100", icon: AlertTriangle, iconBg: "bg-yellow-100", iconColor: "text-yellow-600", value: (stockAlerts.lowStock || []).length, label: "লো স্টA" },
+                  { bg: "bg-red-50 border border-red-100", icon: XCircle, iconBg: "bg-red-100", iconColor: "text-red-500", value: (stockAlerts.outOfStock || []).length, label: "স্টA শেষ" },
                 ].map((card, i) => (
                   <div key={i} className={`${card.bg} rounded-2xl p-5 flex items-center gap-4 shadow-sm`}>
                     <div className={`w-12 h-12 ${card.iconBg} rounded-xl flex items-center justify-center`}>
@@ -963,7 +963,7 @@ const StockBadge = ({ stock, threshold }) => {
               {/* Low Stock Alerts */}
               {(stockAlerts.lowStock || []).length > 0 && (
                 <div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4">
-                  <p className="text-xs font-bold text-yellow-700 mb-3 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> লো স্টক সতর্কতা</p>
+                  <p className="text-xs font-bold text-yellow-700 mb-3 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> লো স্টA সতর্Aতা</p>
                   <div className="flex flex-wrap gap-2">
                     {(stockAlerts.lowStock || []).map((p, i) => (
                       <span key={i} className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-[11px] font-bold">{p.name} — {p.stock}</span>
@@ -976,12 +976,12 @@ const StockBadge = ({ stock, threshold }) => {
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-200 px-4 py-2.5 flex-1 min-w-[200px]">
                   <Search className="w-4 h-4 text-gray-400" />
-                  <input type="text" placeholder="পণ্যের নাম বা মডেল সার্চ করুন..." value={stockSearch} onChange={(e) => { setStockSearch(e.target.value); }} className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 flex-1" />
+                  <input type="text" placeholder="পণ্যের নাম বা মডেল সার্চ Aরুন..." value={stockSearch} onChange={(e) => { setStockSearch(e.target.value); }} className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 flex-1" />
                 </div>
                 <select value={stockStatusFilter} onChange={(e) => setStockStatusFilter(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-600 outline-none">
-                  <option value="all">সব স্টক</option>
-                  <option value="low">লো স্টক</option>
-                  <option value="out">স্টক শেষ</option>
+                  <option value="all">সব স্টA</option>
+                  <option value="low">লো স্টA</option>
+                  <option value="out">স্টA শেষ</option>
                 </select>
                 <button onClick={() => { loadStockProducts(); }} className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-2.5 rounded-xl border border-gray-200 hover:border-vision-blue/30 hover:text-vision-blue transition-all"><Search className="w-3.5 h-3.5" /> সার্চ</button>
               </div>
@@ -991,7 +991,7 @@ const StockBadge = ({ stock, threshold }) => {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {["পণ্য", "ক্যাটাগরি", "মূল্য ($)", "স্টক", "স্ট্যাটাস", ""].map((h, i) => (
+                      {["পণ্য", "Categories", "মূল্য ($)", "স্টA", "স্ট্যাটাস", ""].map((h, i) => (
                         <th key={i} className={`px-5 py-4 text-[10px] font-bold uppercase text-gray-400 tracking-wider ${i === 5 ? "text-right" : "text-left"}`}>{h}</th>
                       ))}
                     </tr>
@@ -1015,17 +1015,17 @@ const StockBadge = ({ stock, threshold }) => {
                           </td>
                           <td className="px-5 py-3">
                             <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${isOut ? "bg-red-100 text-red-700" : isLow ? "bg-yellow-100 text-yellow-700" : "bg-green-100 text-green-700"}`}>
-                              {isOut ? "স্টক শেষ" : isLow ? "লো স্টক" : "স্বাভাবিক"}
+                              {isOut ? "স্টA শেষ" : isLow ? "লো স্টA" : "স্বাভাবিA"}
                             </span>
                           </td>
                           <td className="px-5 py-3 text-right">
-                            <button onClick={() => { setAdjustStockProduct(p); setShowStockAdjust(true); }} className="px-3 py-1.5 bg-vision-blue/10 text-vision-blue rounded-lg text-[10px] font-bold hover:bg-vision-blue/20 transition-all">স্টক আপডেট</button>
+                            <button onClick={() => { setAdjustStockProduct(p); setShowStockAdjust(true); }} className="px-3 py-1.5 bg-vision-blue/10 text-vision-blue rounded-lg text-[10px] font-bold hover:bg-vision-blue/20 transition-all">স্টA আপডেট</button>
                           </td>
                         </tr>
                       );
                     })}
                     {stockProducts.length === 0 && (
-                      <tr><td colSpan="6" className="text-center py-12 text-gray-400">কোনো পণ্য নেই</td></tr>
+                      <tr><td colSpan="6" className="text-center py-12 text-gray-400">No products yet</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -1039,17 +1039,17 @@ const StockBadge = ({ stock, threshold }) => {
             <div className="space-y-6 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-gray-900">ক্যাটাগরি ম্যানেজমেন্ট</h3>
-                  <p className="text-sm text-gray-500 mt-1">ক্যাটাগরি ও সাবক্যাটাগরি যোগ, সম্পাদনা ও পরিচালনা</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900">Categories ম্যানেজমেন্ট</h3>
+                  <p className="text-sm text-gray-500 mt-1">Categories ও সাবCategories যোগ, Edit ও পরিচালনা</p>
                 </div>
                 <button onClick={() => { setEditCategory({ id: "", name: "", shortName: "", description: "", tagline: "", accent: "#0b3474", subcategories: [], sortOrder: categories.length + 1, isActive: true }); setShowAddCategory(true); }}
                   className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-vision-blue/25 transition-all">
-                  <Plus className="w-4 h-4" /> নতুন ক্যাটাগরি
+                  <Plus className="w-4 h-4" /> নতুন Categories
                 </button>
               </div>
               <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3">
                 <Search className="w-4 h-4 text-gray-400 ml-1" />
-                <input type="text" placeholder="ক্যাটাগরির নাম সার্চ করুন..." value={categorySearch} onChange={(e) => setCategorySearch(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400" />
+                <input type="text" placeholder="Categoriesর নাম সার্চ Aরুন..." value={categorySearch} onChange={(e) => setCategorySearch(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400" />
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {categories.filter(c => !categorySearch || c.name?.includes(categorySearch)).map((cat) => (
@@ -1071,29 +1071,29 @@ const StockBadge = ({ stock, threshold }) => {
                       </div>
                     </div>
                     <div className="px-5 py-3">
-                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">সাবক্যাটাগরি ({cat.subcategories?.length || 0})</p>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">সাবCategories ({cat.subcategories?.length || 0})</p>
                       <div className="flex flex-wrap gap-1.5">
                         {(cat.subcategories || []).map(sc => (
                           <span key={sc.id} className="text-[10px] font-semibold text-gray-600 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100">{sc.name}</span>
                         ))}
-                        {(!cat.subcategories || cat.subcategories.length === 0) && <span className="text-xs text-gray-400">কোনো সাবক্যাটাগরি নেই</span>}
+                        {(!cat.subcategories || cat.subcategories.length === 0) && <span className="text-xs text-gray-400">Aোনো সাবCategories নেই</span>}
                       </div>
                     </div>
                     <div className="px-5 py-3 bg-gray-50/50 border-t border-gray-50">
-                      <p className="text-[10px] text-gray-400">{cat.description || "কোনো বর্ণনা নেই"}</p>
+                      <p className="text-[10px] text-gray-400">{cat.description || "Aোনো বর্ণনা নেই"}</p>
                     </div>
                   </div>
                 ))}
                 {categories.length === 0 && (
                   <div className="col-span-2 text-center py-16 bg-white rounded-2xl border border-gray-100">
                     <Layers className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                    <p className="text-sm font-medium text-gray-400">কোনো ক্যাটাগরি নেই</p>
+                    <p className="text-sm font-medium text-gray-400">Aোনো Categories নেই</p>
                   </div>
                 )}
               </div>
 
               {/* Add/Edit Category Modal */}
-              <Modal isOpen={showAddCategory} onClose={() => { setShowAddCategory(false); setEditCategory(null); }} title={editCategory?._id ? "ক্যাটাগরি সম্পাদনা" : "নতুন ক্যাটাগরি"} size="lg">
+              <Modal isOpen={showAddCategory} onClose={() => { setShowAddCategory(false); setEditCategory(null); }} title={editCategory?._id ? "Categories Edit" : "নতুন Categories"} size="lg">
                 {editCategory && (
                   <CategoryForm category={editCategory} onSave={handleSaveCategory} onCancel={() => { setShowAddCategory(false); setEditCategory(null); }} isEdit={!!editCategory?._id} />
                 )}
@@ -1106,20 +1106,20 @@ const StockBadge = ({ stock, threshold }) => {
             <div className="space-y-5 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-gray-900">ফ্রড চেকার</h3>
-                  <p className="text-sm text-gray-500 mt-1">সন্দেহজনক অর্ডার ও ফ্রড প্যাটার্ন বিশ্লেষণ</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900">Fraud Checker</h3>
+                  <p className="text-sm text-gray-500 mt-1">সন্দেহজনA Orders ও ফ্রড প্যাটার্ন বিশ্লেষণ</p>
                 </div>
-                <button onClick={loadFraudData} className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-200 hover:border-vision-blue/30 hover:text-vision-blue transition-all"><RefreshCcw className="w-3.5 h-3.5" /> রিফ্রেশ</button>
+                <button onClick={loadFraudData} className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-200 hover:border-vision-blue/30 hover:text-vision-blue transition-all"><RefreshCcw className="w-3.5 h-3.5" /> Refresh</button>
               </div>
 
               {fraudData && (
                 <>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                      { bg: "from-red-50 to-red-100", icon: AlertTriangle, iconBg: "bg-red-500", value: fraudData.totalFlagged || 0, label: "সন্দেহজনক অর্ডার" },
+                      { bg: "from-red-50 to-red-100", icon: AlertTriangle, iconBg: "bg-red-500", value: fraudData.totalFlagged || 0, label: "সন্দেহজনA Orders" },
                       { bg: "from-orange-50 to-orange-100", icon: Flag, iconBg: "bg-orange-500", value: `${fraudData.fraudRate || 0}%`, label: "ফ্রড রেট" },
-                      { bg: "from-yellow-50 to-yellow-100", icon: Banknote, iconBg: "bg-yellow-500", value: `$${Number(fraudData.highRiskAmount || 0).toLocaleString()}`, label: "হাই রিস্ক পরিমাণ" },
-                      { bg: "from-purple-50 to-purple-100", icon: ScanEye, iconBg: "bg-purple-500", value: (fraudData.commonPatterns || []).length, label: "প্যাটার্ন শনাক্ত" },
+                      { bg: "from-yellow-50 to-yellow-100", icon: Banknote, iconBg: "bg-yellow-500", value: `$${Number(fraudData.highRiskAmount || 0).toLocaleString()}`, label: "হাই রিস্A পরিমাণ" },
+                      { bg: "from-purple-50 to-purple-100", icon: ScanEye, iconBg: "bg-purple-500", value: (fraudData.commonPatterns || []).length, label: "প্যাটার্ন শনাA্ত" },
                     ].map((card, i) => (
                       <div key={i} className={`bg-gradient-to-br ${card.bg} rounded-2xl p-4 border border-white/50 shadow-sm flex items-center gap-3`}>
                         <div className={`w-10 h-10 ${card.iconBg} rounded-xl flex items-center justify-center text-white shadow-md`}><card.icon className="w-5 h-5" /></div>
@@ -1143,11 +1143,11 @@ const StockBadge = ({ stock, threshold }) => {
                   )}
 
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="px-5 py-4 border-b border-gray-100"><h4 className="font-bold text-gray-900 text-sm">সন্দেহজনক অর্ডার তালিকা</h4></div>
+                    <div className="px-5 py-4 border-b border-gray-100"><h4 className="font-bold text-gray-900 text-sm">সন্দেহজনA Orders তালিAা</h4></div>
                     <table className="w-full">
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-100">
-                          {["অর্ডার", "ক্রেতা", "ফোন", "পরিমাণ", "কারণ", ""].map((h, i) => (
+                          {["Orders", "A্রেতা", "ফোন", "পরিমাণ", "Aারণ", ""].map((h, i) => (
                             <th key={i} className={`px-5 py-3 text-[10px] font-bold uppercase text-gray-400 tracking-wider ${i === 5 ? "text-right" : "text-left"}`}>{h}</th>
                           ))}
                         </tr>
@@ -1166,14 +1166,14 @@ const StockBadge = ({ stock, threshold }) => {
                           </tr>
                         ))}
                         {(!fraudData.flaggedOrders || fraudData.flaggedOrders.length === 0) && (
-                          <tr><td colSpan="6" className="text-center py-10 text-gray-400 text-xs">কোনো সন্দেহজনক অর্ডার নেই</td></tr>
+                          <tr><td colSpan="6" className="text-center py-10 text-gray-400 text-xs">Aোনো সন্দেহজনA Orders নেই</td></tr>
                         )}
                       </tbody>
                     </table>
                   </div>
                 </>
               )}
-              {!fraudData && <div className="text-center py-12 text-gray-400 text-sm">সার্ভার চালু করুন এবং রিফ্রেশ করুন</div>}
+              {!fraudData && <div className="text-center py-12 text-gray-400 text-sm">সার্ভার চালু Aরুন এবং Refresh Aরুন</div>}
             </div>
           )}
 
@@ -1182,25 +1182,25 @@ const StockBadge = ({ stock, threshold }) => {
             <div className="space-y-5 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-gray-900">অর্ডার ম্যানেজমেন্ট</h3>
-                  <p className="text-sm text-gray-500 mt-1">সকল অর্ডার ট্র্যাক ও ম্যানেজ করুন</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900">Orders ম্যানেজমেন্ট</h3>
+                  <p className="text-sm text-gray-500 mt-1">সAল Orders ট্র্যাA ও ম্যানেজ Aরুন</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-xl font-bold">{orders.length} অর্ডার</span>
-                  <button onClick={loadOrders} className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-200 hover:border-vision-blue/30 hover:text-vision-blue transition-all"><RefreshCcw className="w-3.5 h-3.5" /> রিফ্রেশ</button>
+                  <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-xl font-bold">{orders.length} Orders</span>
+                  <button onClick={loadOrders} className="flex items-center gap-1.5 text-xs text-gray-500 bg-white px-3 py-2 rounded-xl border border-gray-200 hover:border-vision-blue/30 hover:text-vision-blue transition-all"><RefreshCcw className="w-3.5 h-3.5" /> Refresh</button>
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-200 px-4 py-2.5 flex-1 min-w-[200px]">
                   <Search className="w-4 h-4 text-gray-400" />
-                  <input type="text" placeholder="অর্ডার ID বা ফোন সার্চ করুন..." value={orderSearch} onChange={(e) => { setOrderSearch(e.target.value); setOrderPage(1); }} className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 flex-1" />
+                  <input type="text" placeholder="Orders ID বা ফোন সার্চ Aরুন..." value={orderSearch} onChange={(e) => { setOrderSearch(e.target.value); setOrderPage(1); }} className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400 flex-1" />
                 </div>
                 <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-200 px-3 py-2.5">
                   <Filter className="w-4 h-4 text-gray-400" />
                   <select value={orderFilter} onChange={(e) => { setOrderFilter(e.target.value); setOrderPage(1); }} className="bg-transparent border-none outline-none text-xs font-semibold text-gray-600">
                     <option value="">সব স্ট্যাটাস</option>
-                    {[["pending","অপেক্ষমাণ"],["processing","প্রক্রিয়াধীন"],["shipped","কুরিয়ারে"],["delivered","ডেলিভারি সম্পন্ন"],["cancelled","বাতিল"],["returned","রিটার্ন"]].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                    {[["pending","অপেA্ষমাণ"],["processing","প্রA্রিয়াধীন"],["shipped","Aুরিয়ারে"],["delivered","ডেলিভারি সম্পন্ন"],["cancelled","বাতিল"],["returned","রিটার্ন"]].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
               </div>
@@ -1209,7 +1209,7 @@ const StockBadge = ({ stock, threshold }) => {
                 <table className="w-full min-w-[700px]">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {["অর্ডার", "ক্রেতা", "পণ্য", "মোট", "পেমেন্ট", "স্ট্যাটাস", "অ্যাকশন"].map((h, i) => (
+                      {["Orders", "A্রেতা", "পণ্য", "মোট", "Payment", "স্ট্যাটাস", "অ্যাAশন"].map((h, i) => (
                         <th key={i} className={`px-5 py-4 text-[10px] font-bold uppercase text-gray-400 tracking-wider ${i === 6 ? "text-right" : "text-left"}`}>{h}</th>
                       ))}
                     </tr>
@@ -1244,7 +1244,7 @@ const StockBadge = ({ stock, threshold }) => {
                           <div className="relative group">
                             <button className="flex items-center gap-1 cursor-pointer"><StatusBadge status={order.orderStatus} /><ChevronDown className="w-3 h-3 text-gray-400" /></button>
                             <div className="absolute left-0 top-full mt-1 bg-white rounded-xl border border-gray-200 shadow-xl p-1.5 min-w-[150px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20">
-                              {[["pending","অপেক্ষমাণ"],["processing","প্রক্রিয়াধীন"],["shipped","কুরিয়ারে"],["delivered","ডেলিভারি সম্পন্ন"],["cancelled","বাতিল"]].map(([s, l]) => (
+                              {[["pending","অপেA্ষমাণ"],["processing","প্রA্রিয়াধীন"],["shipped","Aুরিয়ারে"],["delivered","ডেলিভারি সম্পন্ন"],["cancelled","বাতিল"]].map(([s, l]) => (
                                 <button key={s} onClick={() => handleOrderStatusUpdate(order._id, s)} className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${order.orderStatus === s ? "bg-vision-blue/10 text-vision-blue" : "text-gray-600 hover:bg-gray-50"}`}>{l}</button>
                               ))}
                             </div>
@@ -1256,16 +1256,16 @@ const StockBadge = ({ stock, threshold }) => {
                               onClick={() => handleSendToSteadfast(order)}
                               className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 ${order.orderStatus === "shipped" || order.courierTrackingId ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-vision-blue/10 text-vision-blue hover:bg-vision-blue hover:text-white"}`}
                               disabled={order.orderStatus === "shipped" || !!order.courierTrackingId}
-                              title="Steadfast কুরিয়ারে পাঠান"
+                              title="Steadfast Aুরিয়ারে পাঠান"
                             >
-                              <Truck className="w-3 h-3" />{order.courierTrackingId ? "পাঠানো হয়েছে" : "কুরিয়ার"}
+                              <Truck className="w-3 h-3" />{order.courierTrackingId ? "পাঠানো হয়েছে" : "Aুরিয়ার"}
                             </button>
                             <button onClick={() => setViewOrder(order)} className="p-1.5 text-gray-400 hover:text-vision-blue hover:bg-vision-blue/5 rounded-lg transition-all"><Eye className="w-4 h-4" /></button>
                           </div>
                         </td>
                       </tr>
                     ))}
-                    {orders.length === 0 && <tr><td colSpan="7" className="text-center py-12 text-gray-400 text-xs">কোনো অর্ডার নেই</td></tr>}
+                    {orders.length === 0 && <tr><td colSpan="7" className="text-center py-12 text-gray-400 text-xs">Aোনো Orders নেই</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -1277,15 +1277,15 @@ const StockBadge = ({ stock, threshold }) => {
             <div className="space-y-6 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-gray-900">প্রাইস এডিট</h3>
-                  <p className="text-sm text-gray-500 mt-1">পণ্যের মূল্য পরিবর্তন ও বাল্ক প্রাইস এডিট করুন</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900">Price Edit</h3>
+                  <p className="text-sm text-gray-500 mt-1">পণ্যের মূল্য পরিবর্তন ও বাল্A Price Edit Aরুন</p>
                 </div>
-                <button className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg transition-all"><RefreshCcw className="w-4 h-4" /> রিফ্রেশ</button>
+                <button className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg transition-all"><RefreshCcw className="w-4 h-4" /> Refresh</button>
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 text-xs text-gray-500">
-                    <tr><th className="px-4 py-3 text-left">পণ্য</th><th className="px-4 py-3 text-left">ক্যাটাগরি</th><th className="px-4 py-3 text-left">বিক্রয় মূল্য</th><th className="px-4 py-3 text-left">মূল মূল্য</th><th className="px-4 py-3 text-left">স্টক</th><th className="px-4 py-3 text-right">অ্যাকশন</th></tr>
+                    <tr><th className="px-4 py-3 text-left">পণ্য</th><th className="px-4 py-3 text-left">Categories</th><th className="px-4 py-3 text-left">বিA্রয় মূল্য</th><th className="px-4 py-3 text-left">মূল মূল্য</th><th className="px-4 py-3 text-left">স্টA</th><th className="px-4 py-3 text-right">অ্যাAশন</th></tr>
                   </thead>
                   <tbody>
                     {products.map((product) => (
@@ -1298,7 +1298,7 @@ const StockBadge = ({ stock, threshold }) => {
                         <td className="px-4 py-3 text-right"><button onClick={() => handleSaveInlinePrice(product)} className="px-4 py-2 rounded-lg bg-vision-blue text-white text-xs font-bold hover:bg-vision-cyan">সেভ</button></td>
                       </tr>
                     ))}
-                    {products.length === 0 && <tr><td colSpan="6" className="px-4 py-10 text-center text-gray-400">কোনো পণ্য নেই</td></tr>}
+                    {products.length === 0 && <tr><td colSpan="6" className="px-4 py-10 text-center text-gray-400">No products yet</td></tr>}
                   </tbody>
                 </table>
               </div>
@@ -1310,22 +1310,22 @@ const StockBadge = ({ stock, threshold }) => {
             <div className="space-y-5 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-gray-900">মার্কেটিং ওভারভিউ</h3>
-                  <p className="text-sm text-gray-500 mt-1">বিক্রয়, প্রমোশন ও ক্যাম্পেইন একনজরে</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900">Marketing ওভারভিউ</h3>
+                  <p className="text-sm text-gray-500 mt-1">বিA্রয়, প্রমোশন ও A্যাম্পেইন এAনজরে</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setActiveNav("flash-sale")} className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl text-xs font-bold hover:border-vision-blue/40 hover:text-vision-blue transition-all"><Zap className="w-3.5 h-3.5" /> ফ্ল্যাশ সেল</button>
-                  <button onClick={() => setActiveNav("coupons")} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-vision-blue/25 transition-all"><TicketPercent className="w-4 h-4" /> কুপন তৈরি</button>
+                  <button onClick={() => setActiveNav("flash-sale")} className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl text-xs font-bold hover:border-vision-blue/40 hover:text-vision-blue transition-all"><Zap className="w-3.5 h-3.5" /> Flash Sale</button>
+                  <button onClick={() => setActiveNav("coupons")} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-vision-blue/25 transition-all"><TicketPercent className="w-4 h-4" /> Coupons তৈরি</button>
                 </div>
               </div>
 
               {/* Sales Stats */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {[
-                  { bg: "from-emerald-50 to-emerald-100", icon: DollarSign, iconBg: "bg-emerald-500", value: formatTk(stats?.totalSales), label: "মোট বিক্রয়", sub: "সকল অর্ডার" },
-                  { bg: "from-blue-50 to-blue-100", icon: ShoppingCart, iconBg: "bg-blue-500", value: stats?.totalOrders || 0, label: "মোট অর্ডার", sub: "সকল সময়" },
-                  { bg: "from-purple-50 to-purple-100", icon: Users, iconBg: "bg-purple-500", value: stats?.totalCustomers || 0, label: "মোট গ্রাহক", sub: "ইউনিক ফোন" },
-                  { bg: "from-orange-50 to-orange-100", icon: TrendingUp, iconBg: "bg-orange-500", value: formatTk(stats?.monthlyRevenue), label: "মাসিক আয়", sub: "এই মাস" },
+                  { bg: "from-emerald-50 to-emerald-100", icon: DollarSign, iconBg: "bg-emerald-500", value: formatTk(stats?.totalSales), label: "মোট বিA্রয়", sub: "সAল Orders" },
+                  { bg: "from-blue-50 to-blue-100", icon: ShoppingCart, iconBg: "bg-blue-500", value: stats?.totalOrders || 0, label: "মোট Orders", sub: "সAল সময়" },
+                  { bg: "from-purple-50 to-purple-100", icon: Users, iconBg: "bg-purple-500", value: stats?.totalCustomers || 0, label: "মোট গ্রাহA", sub: "ইউনিA ফোন" },
+                  { bg: "from-orange-50 to-orange-100", icon: TrendingUp, iconBg: "bg-orange-500", value: formatTk(stats?.monthlyRevenue), label: "মাসিA আয়", sub: "এই মাস" },
                 ].map((card, i) => (
                   <div key={i} className={`bg-gradient-to-br ${card.bg} rounded-2xl p-4 border border-white/50 shadow-sm`}>
                     <div className={`w-10 h-10 ${card.iconBg} rounded-xl flex items-center justify-center text-white shadow-md mb-3`}><card.icon className="w-5 h-5" /></div>
@@ -1339,9 +1339,9 @@ const StockBadge = ({ stock, threshold }) => {
               {/* Active Promotions */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                  { icon: TicketPercent, iconBg: "bg-pink-500", bg: "from-pink-50 to-rose-50 border-pink-100", value: marketingCounts.coupons, label: "সক্রিয় কুপন", nav: "coupons", btn: "ম্যানেজ করুন" },
-                  { icon: Image, iconBg: "bg-indigo-500", bg: "from-indigo-50 to-blue-50 border-indigo-100", value: marketingCounts.banners, label: "সক্রিয় ব্যানার", nav: "banners", btn: "ম্যানেজ করুন" },
-                  { icon: Zap, iconBg: "bg-yellow-500", bg: "from-yellow-50 to-amber-50 border-yellow-100", value: marketingCounts.flashSales, label: "চলমান ফ্ল্যাশ সেল", nav: "flash-sale", btn: "ম্যানেজ করুন" },
+                  { icon: TicketPercent, iconBg: "bg-pink-500", bg: "from-pink-50 to-rose-50 border-pink-100", value: marketingCounts.coupons, label: "সA্রিয় Coupons", nav: "coupons", btn: "ম্যানেজ Aরুন" },
+                  { icon: Image, iconBg: "bg-indigo-500", bg: "from-indigo-50 to-blue-50 border-indigo-100", value: marketingCounts.banners, label: "সA্রিয় Banners", nav: "banners", btn: "ম্যানেজ Aরুন" },
+                  { icon: Zap, iconBg: "bg-yellow-500", bg: "from-yellow-50 to-amber-50 border-yellow-100", value: marketingCounts.flashSales, label: "চলমান Flash Sale", nav: "flash-sale", btn: "ম্যানেজ Aরুন" },
                 ].map((item, i) => (
                   <div key={i} className={`bg-gradient-to-br ${item.bg} rounded-2xl border p-5 flex items-center justify-between`}>
                     <div className="flex items-center gap-4">
@@ -1360,7 +1360,7 @@ const StockBadge = ({ stock, threshold }) => {
                 {/* Promoted Products */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                   <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <h4 className="font-bold text-gray-900 text-sm">প্রমোশন প্রোডাক্ট</h4>
+                    <h4 className="font-bold text-gray-900 text-sm">প্রমোশন Products</h4>
                     <button onClick={() => setActiveNav("products")} className="text-[10px] font-bold text-vision-blue hover:text-vision-cyan">সব দেখুন →</button>
                   </div>
                   <div className="divide-y divide-gray-50">
@@ -1383,8 +1383,8 @@ const StockBadge = ({ stock, threshold }) => {
                     {products.filter(p => p.featured || p.isBestSeller || p.isNewArrival).length === 0 && (
                       <div className="px-5 py-8 text-center text-gray-400 text-xs">
                         <Tag className="w-8 h-8 mx-auto mb-2 text-gray-200" />
-                        কোনো প্রমোশন প্রোডাক্ট নেই<br />
-                        <button onClick={() => setActiveNav("products")} className="text-vision-blue font-bold mt-1 hover:underline">পণ্যে ট্যাগ যোগ করুন →</button>
+                        Aোনো প্রমোশন Products নেই<br />
+                        <button onClick={() => setActiveNav("products")} className="text-vision-blue font-bold mt-1 hover:underline">পণ্যে ট্যাগ যোগ Aরুন →</button>
                       </div>
                     )}
                   </div>
@@ -1393,33 +1393,33 @@ const StockBadge = ({ stock, threshold }) => {
                 {/* Top Selling + Quick Actions */}
                 <div className="space-y-4">
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="px-5 py-4 border-b border-gray-100"><h4 className="font-bold text-gray-900 text-sm flex items-center gap-2"><TrendingUp className="w-4 h-4 text-orange-500" /> টপ সেলিং প্রোডাক্ট</h4></div>
+                    <div className="px-5 py-4 border-b border-gray-100"><h4 className="font-bold text-gray-900 text-sm flex items-center gap-2"><TrendingUp className="w-4 h-4 text-orange-500" /> টপ সেলিং Products</h4></div>
                     <div className="divide-y divide-gray-50">
                       {topSellingProducts.slice(0, 4).map((p, i) => (
                         <div key={i} className="px-5 py-3 flex items-center gap-3">
                           <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-extrabold text-gray-500">{i + 1}</span>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-bold text-gray-900 truncate">{p.name}</p>
-                            <p className="text-[10px] text-gray-400">{p.sales} বিক্রি</p>
+                            <p className="text-[10px] text-gray-400">{p.sales} বিA্রি</p>
                           </div>
                           <span className="text-xs font-extrabold text-vision-blue flex-shrink-0">${Number(p.revenue || 0).toLocaleString()}</span>
                         </div>
                       ))}
-                      {topSellingProducts.length === 0 && <div className="px-5 py-6 text-center text-xs text-gray-400">কোনো বিক্রয় তথ্য নেই</div>}
+                      {topSellingProducts.length === 0 && <div className="px-5 py-6 text-center text-xs text-gray-400">Aোনো বিA্রয় তথ্য নেই</div>}
                     </div>
                   </div>
 
                   {/* Quick Actions */}
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-                    <p className="text-xs font-extrabold uppercase tracking-widest text-gray-400 mb-3">দ্রুত অ্যাকশন</p>
+                    <p className="text-xs font-extrabold uppercase tracking-widest text-gray-400 mb-3">দ্রুত অ্যাAশন</p>
                     <div className="grid grid-cols-2 gap-2">
                       {[
-                        { label: "কুপন", nav: "coupons", icon: TicketPercent, color: "text-pink-600 bg-pink-50 hover:bg-pink-100" },
-                        { label: "ব্যানার", nav: "banners", icon: Image, color: "text-indigo-600 bg-indigo-50 hover:bg-indigo-100" },
-                        { label: "ফ্ল্যাশ সেল", nav: "flash-sale", icon: Zap, color: "text-yellow-600 bg-yellow-50 hover:bg-yellow-100" },
-                        { label: "প্রাইস এডিট", nav: "price-edit", icon: Banknote, color: "text-emerald-600 bg-emerald-50 hover:bg-emerald-100" },
+                        { label: "Coupons", nav: "coupons", icon: TicketPercent, color: "text-pink-600 bg-pink-50 hover:bg-pink-100" },
+                        { label: "Banners", nav: "banners", icon: Image, color: "text-indigo-600 bg-indigo-50 hover:bg-indigo-100" },
+                        { label: "Flash Sale", nav: "flash-sale", icon: Zap, color: "text-yellow-600 bg-yellow-50 hover:bg-yellow-100" },
+                        { label: "Price Edit", nav: "price-edit", icon: Banknote, color: "text-emerald-600 bg-emerald-50 hover:bg-emerald-100" },
                         { label: "পণ্য ট্যাগ", nav: "products", icon: Tag, color: "text-purple-600 bg-purple-50 hover:bg-purple-100" },
-                        { label: "অর্ডার", nav: "orders", icon: ShoppingCart, color: "text-blue-600 bg-blue-50 hover:bg-blue-100" },
+                        { label: "Orders", nav: "orders", icon: ShoppingCart, color: "text-blue-600 bg-blue-50 hover:bg-blue-100" },
                       ].map((a) => (
                         <button key={a.nav} onClick={() => setActiveNav(a.nav)} className={`${a.color} rounded-xl px-3 py-2.5 flex items-center gap-2 text-xs font-bold transition-all`}>
                           <a.icon className="w-4 h-4 flex-shrink-0" />{a.label}
@@ -1490,22 +1490,22 @@ const StockBadge = ({ stock, threshold }) => {
             <div className="space-y-6 animate-fadeIn">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-2xl font-extrabold text-gray-900">পেজ ম্যানেজমেন্ট</h3>
-                  <p className="text-sm text-gray-500 mt-1">ওয়েবসাইটের পেজসমূহ পরিচালনা করুন</p>
+                  <h3 className="text-2xl font-extrabold text-gray-900">Page Managementমেন্ট</h3>
+                  <p className="text-sm text-gray-500 mt-1">ওয়েবSiteের পেজসমূহ পরিচালনা Aরুন</p>
                 </div>
                 <button onClick={() => { setEditPage({ name: "", title: "", content: "", isActive: true }); setShowAddPage(true); }} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg hover:shadow-vision-blue/25 transition-all">
-                  <Plus className="w-4 h-4" /> নতুন পেজ যোগ করুন
+                  <Plus className="w-4 h-4" /> নতুন পেজ যোগ Aরুন
                 </button>
               </div>
               <div className="flex items-center gap-3 bg-white rounded-2xl border border-gray-100 p-3">
                 <Search className="w-4 h-4 text-gray-400 ml-1" />
-                <input type="text" placeholder="পেজের নাম বা টাইটেল সার্চ করুন..." value={pageSearch} onChange={(e) => setPageSearch(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400" />
+                <input type="text" placeholder="পেজের নাম বা টাইটেল সার্চ Aরুন..." value={pageSearch} onChange={(e) => setPageSearch(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder:text-gray-400" />
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      {["ক্রম", "নাম", "টাইটেল", "স্লাগ", "স্ট্যাটাস", "তৈরির তারিখ", ""].map((h, i) => (
+                      {["A্রম", "নাম", "টাইটেল", "স্লাগ", "স্ট্যাটাস", "তৈরির তারিখ", ""].map((h, i) => (
                         <th key={i} className={`px-5 py-4 text-[10px] font-bold uppercase text-gray-400 tracking-wider ${i === 6 ? "text-right" : "text-left"}`}>{h}</th>
                       ))}
                     </tr>
@@ -1525,17 +1525,17 @@ const StockBadge = ({ stock, threshold }) => {
                         <td className="px-5 py-4"><span className="text-xs text-gray-400">{page.createdAt ? new Date(page.createdAt).toLocaleDateString("bn-BD") : "—"}</span></td>
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <button onClick={() => { setEditPage(page); setShowAddPage(true); }} className="p-2 text-gray-400 hover:text-vision-blue hover:bg-vision-blue/5 rounded-lg transition-all" title="সম্পাদনা"><Edit className="w-4 h-4" /></button>
-                            <button onClick={() => handleDeletePage(page._id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="মুছুন"><Trash2 className="w-4 h-4" /></button>
+                            <button onClick={() => { setEditPage(page); setShowAddPage(true); }} className="p-2 text-gray-400 hover:text-vision-blue hover:bg-vision-blue/5 rounded-lg transition-all" title="Edit"><Edit className="w-4 h-4" /></button>
+                            <button onClick={() => handleDeletePage(page._id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         </td>
                       </tr>
                     ))}
-                    {pages.length === 0 && <tr><td colSpan="7" className="text-center py-12 text-gray-400 text-xs">কোনো পেজ নেই</td></tr>}
+                    {pages.length === 0 && <tr><td colSpan="7" className="text-center py-12 text-gray-400 text-xs">Aোনো পেজ নেই</td></tr>}
                   </tbody>
                 </table>
               </div>
-              <Modal isOpen={showAddPage} onClose={() => { setShowAddPage(false); setEditPage(null); }} title={editPage?._id ? "পেজ সম্পাদনা" : "নতুন পেজ"}>
+              <Modal isOpen={showAddPage} onClose={() => { setShowAddPage(false); setEditPage(null); }} title={editPage?._id ? "পেজ Edit" : "নতুন পেজ"}>
                 {editPage && (
                   <div className="space-y-4">
                     <label className="space-y-1.5">
@@ -1547,20 +1547,20 @@ const StockBadge = ({ stock, threshold }) => {
                       <input value={editPage.title} onChange={(e) => setEditPage({ ...editPage, title: e.target.value })} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" placeholder="পেজ টাইটেল" />
                     </label>
                     <label className="space-y-1.5">
-                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">কন্টেন্ট</span>
-                      <textarea value={editPage.content} onChange={(e) => setEditPage({ ...editPage, content: e.target.value })} rows={4} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" placeholder="পেজ কন্টেন্ট" />
+                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Content</span>
+                      <textarea value={editPage.content} onChange={(e) => setEditPage({ ...editPage, content: e.target.value })} rows={4} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" placeholder="পেজ Content" />
                     </label>
                     {editPage._id && (
                       <label className="flex items-center gap-3">
                         <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">স্ট্যাটাস</span>
                         <button onClick={() => setEditPage({ ...editPage, isActive: !editPage.isActive })} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${editPage.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                          {editPage.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                          {editPage.isActive ? "সA্রিয়" : "নিষ্A্রিয়"}
                         </button>
                       </label>
                     )}
                     <div className="flex gap-3 pt-2">
                       <button onClick={() => { setShowAddPage(false); setEditPage(null); }} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 transition-all">বাতিল</button>
-                      <button onClick={handleSavePage} className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-bold hover:shadow-lg transition-all">{editPage._id ? "আপডেট করুন" : "তৈরি করুন"}</button>
+                      <button onClick={handleSavePage} className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-bold hover:shadow-lg transition-all">{editPage._id ? "আপডেট Aরুন" : "তৈরি Aরুন"}</button>
                     </div>
                   </div>
                 )}
@@ -1570,20 +1570,20 @@ const StockBadge = ({ stock, threshold }) => {
         </div>
 
         {/* ===== STOCK ADJUST MODAL ===== */}
-        <Modal isOpen={showStockAdjust} onClose={() => { setShowStockAdjust(false); setAdjustStockProduct(null); setStockAdjustForm({ type: "add", quantity: "", reason: "" }); }} title="স্টক আপডেট" size="sm">
+        <Modal isOpen={showStockAdjust} onClose={() => { setShowStockAdjust(false); setAdjustStockProduct(null); setStockAdjustForm({ type: "add", quantity: "", reason: "" }); }} title="স্টA আপডেট" size="sm">
           {adjustStockProduct && (
             <div className="space-y-4">
               <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
                 {adjustStockProduct.image ? <img src={adjustStockProduct.image} alt={adjustStockProduct.name} className="w-12 h-12 object-cover rounded-lg border border-gray-100" /> : <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center"><Package className="w-6 h-6 text-gray-400" /></div>}
                 <div>
                   <p className="font-bold text-sm text-gray-900">{adjustStockProduct.name}</p>
-                  <p className="text-[11px] text-gray-500 mt-0.5">বর্তমান স্টক: <span className="font-extrabold text-vision-blue">{adjustStockProduct.stock ?? 0}</span></p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">বর্তমান স্টA: <span className="font-extrabold text-vision-blue">{adjustStockProduct.stock ?? 0}</span></p>
                 </div>
               </div>
               <div>
                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2">অপারেশন</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {[["add","যোগ করুন","green"],["subtract","বিয়োগ","red"],["set","নির্ধারণ","blue"]].map(([t, l, c]) => (
+                  {[["add","যোগ Aরুন","green"],["subtract","বিয়োগ","red"],["set","নির্ধারণ","blue"]].map(([t, l, c]) => (
                     <button key={t} onClick={() => setStockAdjustForm(f => ({ ...f, type: t }))} className={`py-2 rounded-xl border text-xs font-bold transition-all ${stockAdjustForm.type === t ? `bg-${c}-50 text-${c}-700 border-${c}-300` : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"}`}>{l}</button>
                   ))}
                 </div>
@@ -1593,41 +1593,41 @@ const StockBadge = ({ stock, threshold }) => {
                 <input type="number" min="0" value={stockAdjustForm.quantity} onChange={e => setStockAdjustForm(f => ({ ...f, quantity: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" placeholder="0" />
               </div>
               <div>
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">কারণ</label>
-                <input value={stockAdjustForm.reason} onChange={e => setStockAdjustForm(f => ({ ...f, reason: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" placeholder="স্টক পরিবর্তনের কারণ লিখুন..." />
+                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Aারণ</label>
+                <input value={stockAdjustForm.reason} onChange={e => setStockAdjustForm(f => ({ ...f, reason: e.target.value }))} className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" placeholder="স্টA পরিবর্তনের Aারণ লিখুন..." />
               </div>
               <div className="flex gap-2 pt-2">
                 <button onClick={() => { setShowStockAdjust(false); setAdjustStockProduct(null); setStockAdjustForm({ type: "add", quantity: "", reason: "" }); }} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">বাতিল</button>
-                <button onClick={handleStockAdjust} disabled={!stockAdjustForm.quantity} className="flex-1 px-4 py-2.5 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-sm font-bold disabled:opacity-50 hover:shadow-lg transition-all">আপডেট করুন</button>
+                <button onClick={handleStockAdjust} disabled={!stockAdjustForm.quantity} className="flex-1 px-4 py-2.5 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-sm font-bold disabled:opacity-50 hover:shadow-lg transition-all">আপডেট Aরুন</button>
               </div>
             </div>
           )}
         </Modal>
 
         {/* ===== ORDER DETAIL MODAL ===== */}
-        <Modal isOpen={!!viewOrder} onClose={() => setViewOrder(null)} title={`অর্ডার বিস্তারিত — ${viewOrder?.orderId || ""}`} size="lg">
+        <Modal isOpen={!!viewOrder} onClose={() => setViewOrder(null)} title={`Orders বিস্তারিত — ${viewOrder?.orderId || ""}`} size="lg">
           {viewOrder && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">গ্রাহক তথ্য</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">গ্রাহA তথ্য</p>
                   <p className="text-sm font-bold text-gray-900">{viewOrder.customer?.name}</p>
                   <p className="text-xs text-gray-600 mt-1">{viewOrder.customer?.phone}</p>
                   <p className="text-xs text-gray-500 mt-1">{viewOrder.customer?.address}</p>
                   {viewOrder.customer?.email && <p className="text-xs text-gray-500">{viewOrder.customer.email}</p>}
                 </div>
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">অর্ডার তথ্য</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Orders তথ্য</p>
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between"><span className="text-gray-500">তারিখ</span><span className="font-semibold">{new Date(viewOrder.createdAt).toLocaleDateString("bn-BD")}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-500">পেমেন্ট</span><span className="font-semibold uppercase">{viewOrder.paymentMethod || "COD"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-500">Payment</span><span className="font-semibold uppercase">{viewOrder.paymentMethod || "COD"}</span></div>
                     <div className="flex justify-between"><span className="text-gray-500">স্ট্যাটাস</span><StatusBadge status={viewOrder.orderStatus} /></div>
-                    {viewOrder.isFraudSuspected && <p className="text-red-600 font-bold mt-1">⚠️ সন্দেহজনক</p>}
+                    {viewOrder.isFraudSuspected && <p className="text-red-600 font-bold mt-1">⚠️ সন্দেহজনA</p>}
                   </div>
                 </div>
               </div>
               <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-4 py-3 border-b border-gray-100">পণ্য তালিকা</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-4 py-3 border-b border-gray-100">পণ্য তালিAা</p>
                 <div className="divide-y divide-gray-50">
                   {(viewOrder.items || []).map((item, i) => (
                     <div key={i} className="px-4 py-3 flex items-center justify-between">
@@ -1645,8 +1645,8 @@ const StockBadge = ({ stock, threshold }) => {
               </div>
               {viewOrder.notes && <p className="text-xs text-gray-500 bg-yellow-50 border border-yellow-100 rounded-xl p-3">📝 {viewOrder.notes}</p>}
               <div className="flex gap-2 pt-1">
-                <button onClick={() => setViewOrder(null)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">বন্ধ করুন</button>
-                <button onClick={() => { handleSendToSteadfast(viewOrder); setViewOrder(null); }} disabled={!!viewOrder.courierTrackingId} className="flex-1 px-4 py-2.5 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 hover:shadow-lg transition-all"><Truck className="w-4 h-4" />{viewOrder.courierTrackingId ? "পাঠানো হয়েছে" : "কুরিয়ারে পাঠান"}</button>
+                <button onClick={() => setViewOrder(null)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50">বন্ধ Aরুন</button>
+                <button onClick={() => { handleSendToSteadfast(viewOrder); setViewOrder(null); }} disabled={!!viewOrder.courierTrackingId} className="flex-1 px-4 py-2.5 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 hover:shadow-lg transition-all"><Truck className="w-4 h-4" />{viewOrder.courierTrackingId ? "পাঠানো হয়েছে" : "Aুরিয়ারে পাঠান"}</button>
               </div>
             </div>
           )}
@@ -1678,10 +1678,42 @@ const FormField = ({ label, required, children }) => (
 const inputCls = "w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-vision-blue/60 focus:ring-4 focus:ring-vision-blue/5 transition bg-white placeholder:text-gray-300";
 
 const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
-  const [form, setForm] = useState(product);
+  // Initialize form with proper defaults
+  const [form, setForm] = useState(() => {
+    let initialPriceOptions = [];
+    if (product?.priceOptions) {
+      if (Array.isArray(product.priceOptions)) {
+        initialPriceOptions = product.priceOptions;
+      } else if (typeof product.priceOptions === 'string') {
+        try {
+          initialPriceOptions = JSON.parse(product.priceOptions);
+        } catch {
+          initialPriceOptions = [];
+        }
+      }
+    }
+    return {
+      ...product,
+      priceOptions: initialPriceOptions
+    };
+  });
   const [saving, setSaving] = useState(false);
   const [mainPreview, setMainPreview] = useState(product?.image || "");
   const [galleryFiles, setGalleryFiles] = useState([]);
+  const [existingGallery, setExistingGallery] = useState(() => {
+    if (product?.images) {
+      if (Array.isArray(product.images)) {
+        return product.images;
+      } else if (typeof product.images === 'string') {
+        try {
+          return JSON.parse(product.images);
+        } catch {
+          return [];
+        }
+      }
+    }
+    return [];
+  });
 
   const handleMainImage = (e) => {
     const file = e.target.files?.[0];
@@ -1691,6 +1723,10 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
   const handleGallery = (e) => {
     const files = Array.from(e.target.files || []);
     setGalleryFiles(prev => [...prev, ...files]);
+  };
+
+  const removeExistingGallery = (index) => {
+    setExistingGallery(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -1716,6 +1752,7 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
       fd.append("isNewArrival", form.isNewArrival ? "true" : "false");
       fd.append("isBestSeller", form.isBestSeller ? "true" : "false");
       fd.append("priceOptions", JSON.stringify(form.priceOptions || []));
+      fd.append("existingImages", JSON.stringify(existingGallery));
       if (form.imageFile) fd.append("image", form.imageFile);
       galleryFiles.forEach(f => fd.append("images", f));
 
@@ -1723,7 +1760,7 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
       const token = localStorage.getItem("token");
       const url = isEdit ? `${API_URL}/products/${form.id}` : `${API_URL}/products`;
       const res = await fetch(url, { method: isEdit ? "PUT" : "POST", headers: token ? { Authorization: `Bearer ${token}` } : {}, body: fd });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || "সেভ করতে সমস্যা হয়েছে"); }
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.message || "সেভ Aরতে সমস্যা হয়েছে"); }
       onSave();
     } catch (error) {
       alert("❌ " + error.message);
@@ -1751,13 +1788,13 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
                   <div className="relative aspect-square">
                     <img src={mainPreview} alt="preview" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <p className="text-white text-xs font-bold">পরিবর্তন করুন</p>
+                      <p className="text-white text-xs font-bold">পরিবর্তন Aরুন</p>
                     </div>
                   </div>
                 ) : (
                   <div className="aspect-square flex flex-col items-center justify-center gap-2 text-gray-300">
                     <Upload className="w-8 h-8" />
-                    <p className="text-xs font-bold">ছবি আপলোড করুন</p>
+                    <p className="text-xs font-bold">ছবি আপলোড Aরুন</p>
                     <p className="text-[10px]">Cloudinary তে যাবে</p>
                   </div>
                 )}
@@ -1771,19 +1808,24 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
             <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">গ্যালারি ছবি</p>
             <label className="cursor-pointer block">
               <div className="rounded-xl border-2 border-dashed border-gray-200 bg-white hover:border-vision-blue/40 transition-all p-3 min-h-[80px] flex flex-wrap gap-1.5 items-start">
+                {existingGallery.map((url, i) => (
+                  <div key={`existing-${i}`} className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    <button type="button" onClick={(e) => { e.preventDefault(); removeExistingGallery(i); }}
+                      className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white rounded-bl-lg text-[9px] flex items-center justify-center">×</button>
+                  </div>
+                ))}
                 {galleryFiles.map((file, i) => (
-                  <div key={i} className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
+                  <div key={`new-${i}`} className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
                     <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
                     <button type="button" onClick={(e) => { e.preventDefault(); setGalleryFiles(p => p.filter((_, idx) => idx !== i)); }}
                       className="absolute top-0 right-0 w-4 h-4 bg-red-500 text-white rounded-bl-lg text-[9px] flex items-center justify-center">×</button>
                   </div>
                 ))}
-                {galleryFiles.length === 0 && (
-                  <div className="w-full flex flex-col items-center justify-center gap-1 text-gray-300 py-4">
-                    <Plus className="w-6 h-6" />
-                    <p className="text-[10px] font-bold">একাধিক ছবি</p>
-                  </div>
-                )}
+                <div className="w-full flex flex-col items-center justify-center gap-1 text-gray-300 py-4">
+                  <Plus className="w-6 h-6" />
+                  <p className="text-[10px] font-bold">এAাধিA ছবি</p>
+                </div>
               </div>
               <input type="file" accept="image/*" multiple onChange={handleGallery} className="hidden" />
             </label>
@@ -1803,23 +1845,23 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
           </FormField>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="ক্যাটাগরি" required>
+          <FormField label="Categories" required>
             <select className={inputCls} value={form.category || ""} onChange={e => set("category", e.target.value)} required>
-              <option value="">নির্বাচন করুন</option>
+              <option value="">নির্বাচন Aরুন</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </FormField>
-          <FormField label="সাবক্যাটাগরি">
+          <FormField label="সাবCategories">
             <select className={inputCls} value={form.subcategory || ""} onChange={e => set("subcategory", e.target.value)}>
-              <option value="">নির্বাচন করুন</option>
+              <option value="">নির্বাচন Aরুন</option>
               {subcategories.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
             </select>
           </FormField>
         </div>
         <FormField label="বিবরণ">
-          <textarea className={inputCls} rows={2} value={form.description || ""} onChange={e => set("description", e.target.value)} placeholder="পণ্যের সংক্ষিপ্ত বিবরণ..." />
+          <textarea className={inputCls} rows={2} value={form.description || ""} onChange={e => set("description", e.target.value)} placeholder="পণ্যের সংA্ষিপ্ত বিবরণ..." />
         </FormField>
-        <FormField label="স্পেসিফিকেশন (কমা দিয়ে)">
+        <FormField label="স্পেসিফিAেশন (Aমা দিয়ে)">
           <input className={inputCls} value={form.specs || ""} onChange={e => set("specs", e.target.value)} placeholder="43 inch, Full HD, Wifi, Bluetooth" />
         </FormField>
       </div>
@@ -1828,14 +1870,14 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
       <div className="bg-gray-50/80 rounded-2xl p-4 space-y-3">
         <SectionLabel>মূল্য ও রঙ</SectionLabel>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="বিক্রয় মূল্য ($)" required>
+          <FormField label="বিA্রয় মূল্য ($)" required>
             <input className={inputCls} type="number" value={form.price || ""} onChange={e => set("price", e.target.value)} placeholder="25000" required />
           </FormField>
           <FormField label="আসল মূল্য ($)">
             <input className={inputCls} type="number" value={form.originalPrice || ""} onChange={e => set("originalPrice", e.target.value)} placeholder="28000" />
           </FormField>
         </div>
-        <FormField label="ব্র্যান্ড কালার">
+        <FormField label="ব্র্যান্ড Aালার">
           <div className="flex items-center gap-3">
             <input type="color" value={form.color || "#0b3474"} onChange={e => set("color", e.target.value)}
               className="w-10 h-10 rounded-xl border border-gray-200 cursor-pointer flex-shrink-0 p-0.5" />
@@ -1848,10 +1890,10 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
       <div className="bg-gray-50/80 rounded-2xl p-4 space-y-3">
         <SectionLabel>ইনভেন্টরি</SectionLabel>
         <div className="grid grid-cols-2 gap-3">
-          <FormField label="স্টক পরিমাণ">
+          <FormField label="স্টA পরিমাণ">
             <input className={inputCls} type="number" value={form.stock ?? 10} onChange={e => set("stock", Number(e.target.value))} />
           </FormField>
-          <FormField label="লো স্টক সতর্কতা">
+          <FormField label="লো স্টA সতর্Aতা">
             <input className={inputCls} type="number" value={form.lowStockThreshold ?? 5} onChange={e => set("lowStockThreshold", Number(e.target.value))} />
           </FormField>
         </div>
@@ -1860,20 +1902,45 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
       {/* ── Price Options ── */}
       <div className="bg-gray-50/80 rounded-2xl p-4 space-y-3">
         <SectionLabel>মূল্য অপশন (ভেরিয়েন্ট)</SectionLabel>
-        <p className="text-[10px] text-gray-400 -mt-1">একাধিক ভ্যারিয়েন্ট থাকলে যোগ করুন (যেমন: Hot &amp; Cold, Storage Cabinet)</p>
+        <p className="text-[10px] text-gray-400 -mt-1">এAাধিA ভ্যারিয়েন্ট থাAলে যোগ Aরুন (যেমন: Hot &amp; Cold, Storage Cabinet)</p>
         {(form.priceOptions || []).map((opt, i) => (
           <div key={i} className="flex items-center gap-2">
-            <input value={opt.label} onChange={e => { const o = [...(form.priceOptions||[])]; o[i]={...o[i],label:e.target.value}; set("priceOptions",o); }}
-              placeholder="অপশন নাম" className={inputCls + " flex-1"} />
-            <input type="number" value={opt.price} onChange={e => { const o=[...(form.priceOptions||[])]; o[i]={...o[i],price:Number(e.target.value)}; set("priceOptions",o); }}
-              placeholder="মূল্য" className={inputCls + " w-28"} />
-            <button type="button" onClick={() => set("priceOptions",(form.priceOptions||[]).filter((_,idx)=>idx!==i))}
-              className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all flex-shrink-0"><X className="w-4 h-4"/></button>
+            <input 
+              value={opt.label || ""} 
+              onChange={e => { 
+                const o = [...(form.priceOptions || [])];
+                o[i] = { label: e.target.value, price: o[i].price || 0 }; 
+                setForm(f => ({ ...f, priceOptions: o })); 
+              }}
+              placeholder="অপশন নাম (যেমন: Hot & Cold)" 
+              className={inputCls + " flex-1"} 
+            />
+            <input 
+              type="number" 
+              value={opt.price || 0} 
+              onChange={e => { 
+                const o = [...(form.priceOptions || [])]; 
+                o[i] = { label: o[i].label || "", price: Number(e.target.value) || 0 }; 
+                setForm(f => ({ ...f, priceOptions: o })); 
+              }}
+              placeholder="মূল্য" 
+              className={inputCls + " w-32"} 
+            />
+            <button 
+              type="button" 
+              onClick={() => setForm(f => ({ ...f, priceOptions: (f.priceOptions || []).filter((_, idx) => idx !== i) }))}
+              className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         ))}
-        <button type="button" onClick={() => set("priceOptions",[...(form.priceOptions||[]),{label:"",price:Number(form.price)||0}])}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-xs font-bold text-gray-400 hover:border-vision-blue hover:text-vision-blue transition-all">
-          <Plus className="w-3.5 h-3.5"/> অপশন যোগ করুন
+        <button 
+          type="button" 
+          onClick={() => setForm(f => ({ ...f, priceOptions: [...(f.priceOptions || []), { label: "", price: Number(f.price) || 0 }] }))}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border-2 border-dashed border-gray-200 text-xs font-bold text-gray-400 hover:border-vision-blue hover:text-vision-blue transition-all"
+        >
+          <Plus className="w-3.5 h-3.5" /> অপশন যোগ Aরুন
         </button>
       </div>
 
@@ -1882,7 +1949,7 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
         <SectionLabel>পণ্য ট্যাগ ও স্ট্যাটাস</SectionLabel>
         <div className="grid grid-cols-2 gap-2.5">
           {[
-            { key:"isActive", label:"✓ সক্রিয়", on:"bg-green-500 text-white shadow-green-200", off:"bg-white text-gray-500 border border-gray-200" },
+            { key:"isActive", label:"✓ সA্রিয়", on:"bg-green-500 text-white shadow-green-200", off:"bg-white text-gray-500 border border-gray-200" },
             { key:"featured", label:"★ ফিচার্ড", on:"bg-purple-500 text-white shadow-purple-200", off:"bg-white text-gray-500 border border-gray-200" },
             { key:"isNewArrival", label:"◆ নতুন আগমন", on:"bg-blue-500 text-white shadow-blue-200", off:"bg-white text-gray-500 border border-gray-200" },
             { key:"isBestSeller", label:"⚑ বেস্ট সেলার", on:"bg-amber-500 text-white shadow-amber-200", off:"bg-white text-gray-500 border border-gray-200" },
@@ -1903,7 +1970,7 @@ const ProductForm = ({ product, categories, onSave, onCancel, isEdit }) => {
         </button>
         <button type="submit" disabled={saving}
           className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-extrabold hover:shadow-lg hover:shadow-vision-blue/25 disabled:opacity-60 transition-all flex items-center justify-center gap-2">
-          {saving ? <><RefreshCcw className="w-4 h-4 animate-spin"/> সেভ হচ্ছে...</> : isEdit ? "✓ আপডেট করুন" : "✓ পণ্য তৈরি করুন"}
+          {saving ? <><RefreshCcw className="w-4 h-4 animate-spin"/> সেভ হচ্ছে...</> : isEdit ? "✓ আপডেট Aরুন" : "✓ পণ্য তৈরি Aরুন"}
         </button>
       </div>
     </form>
@@ -1983,20 +2050,20 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
 
       {/* Image */}
       <div className="bg-gray-50/60 rounded-2xl p-4 border border-gray-100">
-        <CatSection icon="🖼️" label="ক্যাটাগরি ছবি" />
+        <CatSection icon="🖼️" label="Categories ছবি" />
         <label className="cursor-pointer block">
           <div className={`relative rounded-xl border-2 border-dashed transition-all overflow-hidden ${imagePreview ? "border-vision-blue/30 bg-white" : "border-gray-200 bg-white hover:border-vision-blue/40"}`}>
             {imagePreview ? (
               <div className="relative h-32 flex items-center justify-center">
                 <img src={imagePreview} alt="preview" className="h-full w-full object-contain p-2" />
                 <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                  <p className="text-white text-xs font-bold">পরিবর্তন করুন</p>
+                  <p className="text-white text-xs font-bold">পরিবর্তন Aরুন</p>
                 </div>
               </div>
             ) : (
               <div className="h-24 flex flex-col items-center justify-center gap-1.5 text-gray-300">
                 <Upload className="w-6 h-6" />
-                <p className="text-xs font-bold">ছবি আপলোড করুন (Cloudinary)</p>
+                <p className="text-xs font-bold">ছবি আপলোড Aরুন (Cloudinary)</p>
               </div>
             )}
           </div>
@@ -2009,7 +2076,7 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
         <CatSection icon="🏷️" label="মূল তথ্য" />
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">ক্যাটাগরি ID <span className="text-red-400">*</span></label>
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Categories ID <span className="text-red-400">*</span></label>
             <input value={form.id} onChange={(e) => setForm({ ...form, id: e.target.value })}
               className={catInputCls} placeholder="e.g. ac, tv, fridge" required />
           </div>
@@ -2021,7 +2088,7 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
           <div className="col-span-2 space-y-1.5">
             <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">নাম <span className="text-red-400">*</span></label>
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className={catInputCls} placeholder="ক্যাটাগরির পূর্ণ নাম" required />
+              className={catInputCls} placeholder="Categoriesর পূর্ণ নাম" required />
           </div>
           <div className="col-span-2 space-y-1.5">
             <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">ট্যাগলাইন</label>
@@ -2038,10 +2105,10 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
 
       {/* Appearance */}
       <div className="bg-gray-50/60 rounded-2xl p-4 border border-gray-100">
-        <CatSection icon="🎨" label="সেটিংস ও রঙ" />
+        <CatSection icon="🎨" label="Settings ও রঙ" />
         <div className="grid grid-cols-3 gap-3 items-end">
           <div className="col-span-2 space-y-1.5">
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">একসেন্ট কালার</label>
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">এAসেন্ট Aালার</label>
             <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 focus-within:border-vision-blue/60 focus-within:ring-4 focus-within:ring-vision-blue/5 transition">
               <input type="color" value={form.accent || "#0b3474"} onChange={(e) => setForm({ ...form, accent: e.target.value })}
                 className="w-9 h-9 rounded-lg border-0 cursor-pointer p-0.5 bg-transparent" />
@@ -2051,7 +2118,7 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">সর্ট অর্ডার</label>
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">সর্ট Orders</label>
             <input type="number" value={form.sortOrder || 0} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
               className={catInputCls} />
           </div>
@@ -2059,7 +2126,7 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
         <div className="mt-3 flex items-center justify-between bg-white rounded-xl border border-gray-200 px-4 py-3">
           <div>
             <p className="text-sm font-bold text-gray-700">স্ট্যাটাস</p>
-            <p className="text-[11px] text-gray-400 mt-0.5">{form.isActive !== false ? "এই ক্যাটাগরি সক্রিয়" : "এই ক্যাটাগরি নিষ্ক্রিয়"}</p>
+            <p className="text-[11px] text-gray-400 mt-0.5">{form.isActive !== false ? "এই Categories সA্রিয়" : "এই Categories নিষ্A্রিয়"}</p>
           </div>
           <button type="button" onClick={() => setForm({ ...form, isActive: !form.isActive })}
             className={`relative w-12 h-6 rounded-full transition-all duration-300 ${form.isActive !== false ? "bg-green-500" : "bg-gray-300"}`}>
@@ -2070,7 +2137,7 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
 
       {/* Subcategories */}
       <div className="bg-gray-50/60 rounded-2xl p-4 border border-gray-100">
-        <CatSection icon="📂" label="সাবক্যাটাগরি" />
+        <CatSection icon="📂" label="সাবCategories" />
         {(form.subcategories || []).length > 0 && (
           <div className="space-y-2 mb-4">
             {(form.subcategories || []).map(sc => (
@@ -2092,20 +2159,20 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
           </div>
         )}
         <div className="bg-white rounded-xl border border-dashed border-gray-300 p-3 space-y-2">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">নতুন সাবক্যাটাগরি যোগ করুন</p>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">নতুন সাবCategories যোগ Aরুন</p>
           <div className="grid grid-cols-2 gap-2">
             <input value={newSubId} onChange={(e) => setNewSubId(e.target.value)} placeholder="ID (e.g. split-ac)"
               className="rounded-lg border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50 bg-gray-50 focus:bg-white transition" />
             <input value={newSubName} onChange={(e) => setNewSubName(e.target.value)} placeholder="নাম"
               className="rounded-lg border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50 bg-gray-50 focus:bg-white transition" />
-            <input value={newSubTagline} onChange={(e) => setNewSubTagline(e.target.value)} placeholder="ট্যাগলাইন (ঐচ্ছিক)"
+            <input value={newSubTagline} onChange={(e) => setNewSubTagline(e.target.value)} placeholder="ট্যাগলাইন (ঐচ্ছিA)"
               className="rounded-lg border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50 bg-gray-50 focus:bg-white transition" />
-            <input value={newSubBanner} onChange={(e) => setNewSubBanner(e.target.value)} placeholder="ব্যানার URL (ঐচ্ছিক)"
+            <input value={newSubBanner} onChange={(e) => setNewSubBanner(e.target.value)} placeholder="Banners URL (ঐচ্ছিA)"
               className="rounded-lg border border-gray-200 px-3 py-2 text-xs outline-none focus:border-vision-blue/50 bg-gray-50 focus:bg-white transition" />
           </div>
           <button type="button" onClick={addSubcategory} disabled={!newSubName || !newSubId}
             className="w-full py-2 bg-gradient-to-r from-vision-blue/10 to-vision-cyan/10 text-vision-blue rounded-lg text-xs font-bold hover:from-vision-blue hover:to-vision-cyan hover:text-white disabled:opacity-40 transition-all border border-vision-blue/20 hover:border-transparent">
-            + সাবক্যাটাগরি যোগ করুন
+            + সাবCategories যোগ Aরুন
           </button>
         </div>
       </div>
@@ -2114,7 +2181,7 @@ const CategoryForm = ({ category, onSave, onCancel, isEdit }) => {
         <button type="button" onClick={onCancel} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all">বাতিল</button>
         <button type="submit" disabled={saving}
           className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-vision-blue/25 disabled:opacity-50 transition-all">
-          {saving ? "সেভ হচ্ছে..." : isEdit ? "আপডেট করুন" : "তৈরি করুন"}
+          {saving ? "সেভ হচ্ছে..." : isEdit ? "আপডেট Aরুন" : "তৈরি Aরুন"}
         </button>
       </div>
     </form>
@@ -2162,7 +2229,7 @@ const AddUserForm = ({ onSuccess }) => {
           <option value="admin">এডমিন</option><option value="superadmin">সুপার এডমিন</option>
         </select>
       </label>
-      <button type="submit" disabled={saving} className="w-full px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">{saving ? "সেভ হচ্ছে..." : "ইউজার তৈরি করুন"}</button>
+      <button type="submit" disabled={saving} className="w-full px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">{saving ? "সেভ হচ্ছে..." : "ইউজার তৈরি Aরুন"}</button>
     </form>
   );
 };
@@ -2199,8 +2266,8 @@ const ShippingManager = () => {
   };
 
   const zones = [
-    { key: "inside", activeKey: "insideActive", label: "ঢাকা সিটির মধ্যে", desc: "Inside Dhaka delivery charge" },
-    { key: "outside", activeKey: "outsideActive", label: "ঢাকা সিটির বাইরে", desc: "Outside Dhaka delivery charge" },
+    { key: "inside", activeKey: "insideActive", label: "ঢাAা সিটির মধ্যে", desc: "Inside Dhaka delivery charge" },
+    { key: "outside", activeKey: "outsideActive", label: "ঢাAা সিটির বাইরে", desc: "Outside Dhaka delivery charge" },
     { key: "freeThreshold", activeKey: null, label: "ফ্রি শিপিং থ্রেশহোল্ড", desc: "Order amount above which delivery is free" },
   ];
 
@@ -2208,11 +2275,11 @@ const ShippingManager = () => {
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-2xl font-extrabold text-gray-900">শিপিং চার্জ</h3>
+          <h3 className="text-2xl font-extrabold text-gray-900">Shipping Charge</h3>
           <p className="text-sm text-gray-500 mt-1">ডেলিভারি চার্জ ও শিপিং জোন সেটআপ</p>
         </div>
         <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
-          {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ করুন</>}
+          {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ Aরুন</>}
         </button>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -2223,7 +2290,7 @@ const ShippingManager = () => {
               {z.activeKey && (
                 <button type="button" onClick={() => setShipping(s => ({ ...s, [z.activeKey]: !s[z.activeKey] }))}
                   className={`px-3 py-1 rounded-full text-[10px] font-bold border transition-all ${shipping[z.activeKey] !== false ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-                  {shipping[z.activeKey] !== false ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                  {shipping[z.activeKey] !== false ? "সA্রিয়" : "নিষ্A্রিয়"}
                 </button>
               )}
             </div>
@@ -2237,7 +2304,7 @@ const ShippingManager = () => {
         ))}
       </div>
       <div className="bg-blue-50 rounded-2xl border border-blue-100 p-4">
-        <p className="text-xs font-bold text-blue-700">💡 টিপস: ফ্রি শিপিং থ্রেশহোল্ড ${(shipping.freeThreshold || 2000).toLocaleString()} সেট আছে। এর বেশি অর্ডারে ডেলিভারি চার্জ নেওয়া হবে না।</p>
+        <p className="text-xs font-bold text-blue-700">💡 টিপস: ফ্রি শিপিং থ্রেশহোল্ড ${(shipping.freeThreshold || 2000).toLocaleString()} সেট আছে। এর বেশি Ordersে ডেলিভারি চার্জ নেওয়া হবে না।</p>
       </div>
     </div>
   );
@@ -2279,8 +2346,8 @@ const SteadfastManager = () => {
         headers: { "Api-Key": cfg.apiKey, "Secret-Key": cfg.secretKey },
       });
       const data = await res.json();
-      setTestResult(data?.status === 1 ? { ok: true, msg: "সংযোগ সফল! API কাজ করছে।" } : { ok: false, msg: data?.message || "API ত্রুটি" });
-    } catch { setTestResult({ ok: false, msg: "সংযোগ ব্যর্থ। API Key পরীক্ষা করুন।" }); }
+      setTestResult(data?.status === 1 ? { ok: true, msg: "সংযোগ সফল! API Aাজ Aরছে।" } : { ok: false, msg: data?.message || "API ত্রুটি" });
+    } catch { setTestResult({ ok: false, msg: "সংযোগ ব্যর্থ। API Key পরীA্ষা Aরুন।" }); }
     setTesting(false);
   };
 
@@ -2288,15 +2355,15 @@ const SteadfastManager = () => {
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-2xl font-extrabold text-gray-900">Steadfast কুরিয়ার API</h3>
-          <p className="text-sm text-gray-500 mt-1">Steadfast কুরিয়ার সার্ভিস ইন্টিগ্রেশন</p>
+          <h3 className="text-2xl font-extrabold text-gray-900">Steadfast Courier API</h3>
+          <p className="text-sm text-gray-500 mt-1">Steadfast Aুরিয়ার সার্ভিস ইন্টিগ্রেশন</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={handleTest} disabled={testing || !cfg.apiKey} className="flex items-center gap-2 border border-vision-blue text-vision-blue px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-vision-blue/5 disabled:opacity-40 transition-all">
-            <RefreshCcw className={`w-3.5 h-3.5 ${testing ? "animate-spin" : ""}`} /> {testing ? "পরীক্ষা হচ্ছে..." : "সংযোগ পরীক্ষা"}
+            <RefreshCcw className={`w-3.5 h-3.5 ${testing ? "animate-spin" : ""}`} /> {testing ? "পরীA্ষা হচ্ছে..." : "সংযোগ পরীA্ষা"}
           </button>
           <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
-            {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ করুন</>}
+            {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ Aরুন</>}
           </button>
         </div>
       </div>
@@ -2310,10 +2377,10 @@ const SteadfastManager = () => {
 
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-bold text-gray-900">API কনফিগারেশন</h4>
+          <h4 className="text-sm font-bold text-gray-900">API Aনফিগারেশন</h4>
           <button type="button" onClick={() => setCfg(s => ({ ...s, isActive: !s.isActive }))}
             className={`px-4 py-1.5 rounded-full text-[10px] font-bold border transition-all ${cfg.isActive ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-            {cfg.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+            {cfg.isActive ? "সA্রিয়" : "নিষ্A্রিয়"}
           </button>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -2335,10 +2402,10 @@ const SteadfastManager = () => {
       <div className="bg-blue-50 rounded-2xl border border-blue-100 p-4 space-y-1">
         <p className="text-xs font-bold text-blue-700">📦 Steadfast API সেটআপ গাইড:</p>
         <ol className="text-[11px] text-blue-600 list-decimal list-inside space-y-1">
-          <li>portal.steadfast.com.bd তে অ্যাকাউন্ট খুলুন</li>
-          <li>Settings → API Key থেকে API Key ও Secret Key নিন</li>
-          <li>উপরের ফর্মে পেস্ট করে "সংযোগ পরীক্ষা" ক্লিক করুন</li>
-          <li>সফল হলে "সেভ করুন" ক্লিক করুন</li>
+          <li>portal.steadfast.com.bd তে অ্যাAাউন্ট খুলুন</li>
+          <li>Settings → API Key থেAে API Key ও Secret Key নিন</li>
+          <li>উপরের ফর্মে পেস্ট Aরে "সংযোগ পরীA্ষা" A্লিA Aরুন</li>
+          <li>সফল হলে "সেভ Aরুন" A্লিA Aরুন</li>
         </ol>
       </div>
     </div>
@@ -2389,17 +2456,17 @@ const BkashManager = () => {
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-2xl font-extrabold text-gray-900">বিকাশ পেমেন্ট</h3>
-          <p className="text-sm text-gray-500 mt-1">bKash Merchant API ইন্টিগ্রেশন ও সেটিংস</p>
+          <h3 className="text-2xl font-extrabold text-gray-900">bKash Payment</h3>
+          <p className="text-sm text-gray-500 mt-1">bKash Merchant API ইন্টিগ্রেশন ও Settings</p>
         </div>
         <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
-          {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ করুন</>}
+          {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ Aরুন</>}
         </button>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-bold text-gray-900">মার্চেন্ট কনফিগারেশন</h4>
+          <h4 className="text-sm font-bold text-gray-900">মার্চেন্ট Aনফিগারেশন</h4>
           <div className="flex items-center gap-3">
             <button type="button" onClick={toggleSandbox}
               className={`px-3 py-1.5 rounded-full text-[10px] font-bold border transition-all ${cfg.isSandbox ? "bg-yellow-100 text-yellow-700 border-yellow-200" : "bg-blue-100 text-blue-700 border-blue-200"}`}>
@@ -2407,7 +2474,7 @@ const BkashManager = () => {
             </button>
             <button type="button" onClick={() => setCfg(s => ({ ...s, isActive: !s.isActive }))}
               className={`px-3 py-1.5 rounded-full text-[10px] font-bold border transition-all ${cfg.isActive ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-              {cfg.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+              {cfg.isActive ? "সA্রিয়" : "নিষ্A্রিয়"}
             </button>
           </div>
         </div>
@@ -2446,10 +2513,10 @@ const BkashManager = () => {
       <div className="bg-pink-50 rounded-2xl border border-pink-100 p-4 space-y-1">
         <p className="text-xs font-bold text-pink-700">📱 bKash API সেটআপ গাইড:</p>
         <ol className="text-[11px] text-pink-600 list-decimal list-inside space-y-1">
-          <li>merchant.bkash.com থেকে Merchant অ্যাকাউন্ট খুলুন</li>
-          <li>Developer Portal থেকে App Key, App Secret পান</li>
-          <li>Sandbox দিয়ে টেস্ট করুন, তারপর Production তে switch করুন</li>
-          <li>Callback URL সেট করুন: <code className="bg-pink-100 px-1 rounded">/api/bkash/callback</code></li>
+          <li>merchant.bkash.com থেAে Merchant অ্যাAাউন্ট খুলুন</li>
+          <li>Developer Portal থেAে App Key, App Secret পান</li>
+          <li>Sandbox দিয়ে টেস্ট Aরুন, তারপর Production তে switch Aরুন</li>
+          <li>Callback URL সেট Aরুন: <code className="bg-pink-100 px-1 rounded">/api/bkash/callback</code></li>
         </ol>
       </div>
     </div>
@@ -2462,10 +2529,10 @@ const BkashManager = () => {
 const PaymentSettingsManager = () => {
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
   const [methods, setMethods] = useState([
-    { id: "cod", name: "Cash on Delivery", namebn: "ক্যাশ অন ডেলিভারি", isActive: true },
-    { id: "bkash", name: "bKash", namebn: "বিকাশ", isActive: false },
+    { id: "cod", name: "Cash on Delivery", namebn: "A্যাশ অন ডেলিভারি", isActive: true },
+    { id: "bkash", name: "bKash", namebn: "bKash", isActive: false },
     { id: "nagad", name: "Nagad", namebn: "নগদ", isActive: false },
-    { id: "rocket", name: "Rocket (DBBL)", namebn: "রকেট", isActive: false },
+    { id: "rocket", name: "Rocket (DBBL)", namebn: "রAেট", isActive: false },
   ]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -2496,11 +2563,11 @@ const PaymentSettingsManager = () => {
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-2xl font-extrabold text-gray-900">পেমেন্ট সেটিংস</h3>
-          <p className="text-sm text-gray-500 mt-1">পেমেন্ট মেথড সক্রিয় / নিষ্ক্রিয় করুন</p>
+          <h3 className="text-2xl font-extrabold text-gray-900">Payment Settings</h3>
+          <p className="text-sm text-gray-500 mt-1">Payment মেথড সA্রিয় / নিষ্A্রিয় Aরুন</p>
         </div>
         <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
-          {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ করুন</>}
+          {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ Aরুন</>}
         </button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -2519,7 +2586,7 @@ const PaymentSettingsManager = () => {
               </div>
               <button type="button" onClick={() => toggle(p.id)}
                 className={`px-4 py-2 rounded-xl text-[11px] font-bold border transition-all ${p.isActive ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-                {p.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                {p.isActive ? "সA্রিয়" : "নিষ্A্রিয়"}
               </button>
             </div>
           );
@@ -2575,11 +2642,11 @@ const PixelManager = () => {
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-2xl font-extrabold text-gray-900">ট্র্যাকিং পিক্সেল ও অ্যানালিটিক্স</h3>
-          <p className="text-sm text-gray-500 mt-1">Facebook Pixel, Google Analytics ও GTM কনফিগারেশন</p>
+          <h3 className="text-2xl font-extrabold text-gray-900">Tracking Pixel ও অ্যানালিটিA্স</h3>
+          <p className="text-sm text-gray-500 mt-1">Facebook Pixel, Google Analytics ও GTM Aনফিগারেশন</p>
         </div>
         <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
-          {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ করুন</>}
+          {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ Aরুন</>}
         </button>
       </div>
 
@@ -2597,7 +2664,7 @@ const PixelManager = () => {
           </div>
           <button type="button" onClick={() => setCfg(s => ({ ...s, fbActive: !s.fbActive }))}
             className={`px-4 py-1.5 rounded-full text-[10px] font-bold border transition-all ${cfg.fbActive ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-            {cfg.fbActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+            {cfg.fbActive ? "সA্রিয়" : "নিষ্A্রিয়"}
           </button>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -2617,7 +2684,7 @@ const PixelManager = () => {
           {["PageView", "ViewContent", "AddToCart", "Purchase"].map(ev => (
             <div key={ev} className="rounded-xl border border-blue-100 bg-blue-50 p-2 text-center">
               <p className="text-[10px] font-bold text-blue-700">{ev}</p>
-              <p className="text-[9px] text-blue-400">ট্র্যাক হচ্ছে</p>
+              <p className="text-[9px] text-blue-400">ট্র্যাA হচ্ছে</p>
             </div>
           ))}
         </div>
@@ -2637,7 +2704,7 @@ const PixelManager = () => {
           </div>
           <button type="button" onClick={() => setCfg(s => ({ ...s, ga4Active: !s.ga4Active }))}
             className={`px-4 py-1.5 rounded-full text-[10px] font-bold border transition-all ${cfg.ga4Active ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-            {cfg.ga4Active ? "সক্রিয়" : "নিষ্ক্রিয়"}
+            {cfg.ga4Active ? "সA্রিয়" : "নিষ্A্রিয়"}
           </button>
         </div>
         <Field label="Measurement ID" fieldKey="ga4Id" placeholder="G-XXXXXXXXXX" mono help="Google Analytics → Admin → Data Streams → Measurement ID" />
@@ -2657,7 +2724,7 @@ const PixelManager = () => {
           </div>
           <button type="button" onClick={() => setCfg(s => ({ ...s, gtmActive: !s.gtmActive }))}
             className={`px-4 py-1.5 rounded-full text-[10px] font-bold border transition-all ${cfg.gtmActive ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-            {cfg.gtmActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+            {cfg.gtmActive ? "সA্রিয়" : "নিষ্A্রিয়"}
           </button>
         </div>
         <Field label="Container ID" fieldKey="gtmId" placeholder="GTM-XXXXXXX" mono help="tagmanager.google.com → Container → Container ID" />
@@ -2721,19 +2788,19 @@ const SmtpManager = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-2xl font-extrabold text-gray-900">Email SMTP Gateway</h3>
-          <p className="text-sm text-gray-500 mt-1">ইমেইল নোটিফিকেশন ও SMTP কনফিগারেশন</p>
+          <p className="text-sm text-gray-500 mt-1">ইমেইল নোটিফিAেশন ও SMTP Aনফিগারেশন</p>
         </div>
         <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
-          {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ করুন</>}
+          {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : saving ? "সেভ হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ Aরুন</>}
         </button>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-bold text-gray-900">SMTP সেটিংস</h4>
+          <h4 className="text-sm font-bold text-gray-900">SMTP Settings</h4>
           <button type="button" onClick={() => setCfg(s => ({ ...s, isActive: !s.isActive }))}
             className={`px-4 py-1.5 rounded-full text-[10px] font-bold border transition-all ${cfg.isActive ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-            {cfg.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+            {cfg.isActive ? "সA্রিয়" : "নিষ্A্রিয়"}
           </button>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -2761,7 +2828,7 @@ const SmtpManager = () => {
               <input type={showPass ? "text" : "password"} value={cfg.password} onChange={e => setCfg(s => ({ ...s, password: e.target.value }))} placeholder="••••••••••••••••" className="w-full rounded-xl border border-gray-200 px-4 py-3 pr-10 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5" />
               <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"><Eye className="w-4 h-4" /></button>
             </div>
-            <p className="text-[10px] text-gray-400 mt-1">Gmail এর জন্য App Password ব্যবহার করুন</p>
+            <p className="text-[10px] text-gray-400 mt-1">Gmail এর জন্য App Password ব্যবহার Aরুন</p>
           </div>
           <div>
             <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">From Email *</label>
@@ -2775,11 +2842,11 @@ const SmtpManager = () => {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h4 className="text-sm font-bold text-gray-900">নোটিফিকেশন সেটিংস</h4>
+        <h4 className="text-sm font-bold text-gray-900">নোটিফিAেশন Settings</h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { key: "notifyOrder", label: "অর্ডার কনফার্মেশন", desc: "নতুন অর্ডারে ইমেইল" },
-            { key: "notifyStatusChange", label: "স্ট্যাটাস পরিবর্তন", desc: "অর্ডার আপডেটে ইমেইল" },
+            { key: "notifyOrder", label: "Orders Aনফার্মেশন", desc: "নতুন Ordersে ইমেইল" },
+            { key: "notifyStatusChange", label: "স্ট্যাটাস পরিবর্তন", desc: "Orders আপডেটে ইমেইল" },
             { key: "notifyContact", label: "যোগাযোগ ফর্ম", desc: "Contact form submission" },
           ].map(n => (
             <div key={n.key} className={`rounded-xl border p-4 cursor-pointer transition-all ${cfg[n.key] ? "border-green-200 bg-green-50" : "border-gray-100 bg-gray-50"}`}
@@ -2818,9 +2885,9 @@ const SmtpManager = () => {
       <div className="bg-yellow-50 rounded-2xl border border-yellow-100 p-4 space-y-1">
         <p className="text-xs font-bold text-yellow-700 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> Gmail App Password সেটআপ:</p>
         <ol className="text-[11px] text-yellow-600 list-decimal list-inside space-y-1">
-          <li>Google Account → Security → 2-Step Verification চালু করুন</li>
-          <li>Security → App passwords → অ্যাপ নির্বাচন করুন "Mail"</li>
-          <li>জেনারেট করা 16-ক্যারেক্টার পাসওয়ার্ড উপরে ব্যবহার করুন</li>
+          <li>Google Account → Security → 2-Step Verification চালু Aরুন</li>
+          <li>Security → App passwords → অ্যাপ নির্বাচন Aরুন "Mail"</li>
+          <li>জেনারেট Aরা 16-A্যারেA্টার পাসওয়ার্ড উপরে ব্যবহার Aরুন</li>
         </ol>
       </div>
     </div>
@@ -2885,7 +2952,7 @@ const GeneralSettingsManager = () => {
       if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message || `সেভ ব্যর্থ (${res.status})`); }
       setCfg(updatedCfg); setLogoFile(null); setFaviconFile(null);
       setSaved(true); setTimeout(() => setSaved(false), 3000);
-    } catch (e) { setSaveError(e.message || "সেভ করা সম্ভব হয়নি"); setUploading(false); }
+    } catch (e) { setSaveError(e.message || "সেভ Aরা সম্ভব হয়নি"); setUploading(false); }
     setSaving(false);
   };
 
@@ -2903,12 +2970,12 @@ const GeneralSettingsManager = () => {
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-2xl font-extrabold text-gray-900">সাধারণ সেটিংস</h3>
-          <p className="text-sm text-gray-500 mt-1">সাইটের নাম, লোগো, যোগাযোগ ও SEO তথ্য</p>
+          <h3 className="text-2xl font-extrabold text-gray-900">General Settings</h3>
+          <p className="text-sm text-gray-500 mt-1">Siteের নাম, লোগো, যোগাযোগ ও SEO তথ্য</p>
         </div>
         <div className="flex flex-col items-end gap-1">
           <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
-            {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : (saving || uploading) ? "আপলোড হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ করুন</>}
+            {saved ? <><CheckCircle2 className="w-4 h-4" /> সেভ হয়েছে</> : (saving || uploading) ? "আপলোড হচ্ছে..." : <><Cog className="w-4 h-4" /> সেভ Aরুন</>}
           </button>
           {saveError && <p className="text-xs font-bold text-red-500">{saveError}</p>}
         </div>
@@ -2919,7 +2986,7 @@ const GeneralSettingsManager = () => {
         <h4 className="text-sm font-bold text-gray-900">ব্র্যান্ডিং</h4>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <F label="সাইটের নাম *" fieldKey="siteName" placeholder="Vision Store" />
+            <F label="Siteের নাম *" fieldKey="siteName" placeholder="Vision Store" />
             <F label="ট্যাগলাইন" fieldKey="tagline" placeholder="Quality You Can Trust" />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -2931,7 +2998,7 @@ const GeneralSettingsManager = () => {
                   {(logoFile ? URL.createObjectURL(logoFile) : cfg.logoUrl) ? (
                     <img src={logoFile ? URL.createObjectURL(logoFile) : cfg.logoUrl} alt="Logo" className="w-full h-full object-contain p-2 rounded-xl" />
                   ) : (
-                    <><Image className="w-6 h-6 text-gray-300 mb-1" /><span className="text-[9px] text-gray-400">আপলোড করুন</span></>
+                    <><Image className="w-6 h-6 text-gray-300 mb-1" /><span className="text-[9px] text-gray-400">আপলোড Aরুন</span></>
                   )}
                 </div>
                 <input type="file" accept="image/*" className="hidden" onChange={e => setLogoFile(e.target.files[0])} />
@@ -2939,7 +3006,7 @@ const GeneralSettingsManager = () => {
             </div>
             {/* Favicon upload */}
             <div className="text-center">
-              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2">ফ্যাভিকন</label>
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2">ফ্যাভিAন</label>
               <label className="cursor-pointer block">
                 <div className="w-full aspect-square border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center bg-gray-50 hover:border-vision-blue/50 transition-all">
                   {(faviconFile ? URL.createObjectURL(faviconFile) : cfg.faviconUrl) ? (
@@ -2963,8 +3030,8 @@ const GeneralSettingsManager = () => {
           <F label="ইমেইল" fieldKey="email" placeholder="info@visionstore.com" type="email" />
           <F label="WhatsApp" fieldKey="whatsapp" placeholder="+8801XXXXXXXXX" />
           <div className="sm:col-span-2 lg:col-span-3">
-            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">ঠিকানা</label>
-            <textarea value={cfg.address || ""} onChange={e => setCfg(s => ({ ...s, address: e.target.value }))} rows={2} placeholder="সম্পূর্ণ ঠিকানা"
+            <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">ঠিAানা</label>
+            <textarea value={cfg.address || ""} onChange={e => setCfg(s => ({ ...s, address: e.target.value }))} rows={2} placeholder="সম্পূর্ণ ঠিAানা"
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5 resize-none" />
           </div>
         </div>
@@ -2982,16 +3049,16 @@ const GeneralSettingsManager = () => {
 
       {/* SEO */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h4 className="text-sm font-bold text-gray-900">SEO সেটিংস</h4>
+        <h4 className="text-sm font-bold text-gray-900">SEO Settings</h4>
         <F label="মেটা টাইটেল" fieldKey="metaTitle" placeholder="Vision Store - Quality Electronics Bangladesh" />
         <div>
-          <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">মেটা ডেসক্রিপশন</label>
-          <textarea value={cfg.metaDescription || ""} onChange={e => setCfg(s => ({ ...s, metaDescription: e.target.value }))} rows={3} placeholder="আপনার সাইটের বিস্তারিত বিবরণ..."
+          <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">মেটা ডেসA্রিপশন</label>
+          <textarea value={cfg.metaDescription || ""} onChange={e => setCfg(s => ({ ...s, metaDescription: e.target.value }))} rows={3} placeholder="আপনার Siteের বিস্তারিত বিবরণ..."
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50 focus:ring-4 focus:ring-vision-blue/5 resize-none" />
-          <p className="text-[10px] text-gray-400 mt-1">{(cfg.metaDescription || "").length}/160 ক্যারেক্টার</p>
+          <p className="text-[10px] text-gray-400 mt-1">{(cfg.metaDescription || "").length}/160 A্যারেA্টার</p>
         </div>
-        <F label="কীওয়ার্ড (কমা দিয়ে আলাদা করুন)" fieldKey="metaKeywords" placeholder="electronics, gadgets, vision, bangladesh" />
-        <F label="কপিরাইট বছর" fieldKey="copyrightYear" placeholder="2024" />
+        <F label="Aীওয়ার্ড (Aমা দিয়ে আলাদা Aরুন)" fieldKey="metaKeywords" placeholder="electronics, gadgets, vision, bangladesh" />
+        <F label="Aপিরাইট বছর" fieldKey="copyrightYear" placeholder="2024" />
       </div>
     </div>
   );
@@ -3088,11 +3155,11 @@ const FrontendContentManager = () => {
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-2xl font-extrabold text-gray-900">ফ্রন্টএন্ড কন্টেন্ট</h3>
-          <p className="text-sm text-gray-500 mt-1">Manufacturing Highlights ও Factory Videos পরিচালনা করুন</p>
+          <h3 className="text-2xl font-extrabold text-gray-900">Frontend Content</h3>
+          <p className="text-sm text-gray-500 mt-1">Manufacturing Highlights ও Factory Videos পরিচালনা Aরুন</p>
         </div>
         <button onClick={() => handleOpenForm()} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg transition-all">
-          <Plus className="w-4 h-4" /> নতুন {tab === "highlights" ? "হাইলাইট" : "ভিডিও"} যোগ করুন
+          <Plus className="w-4 h-4" /> নতুন {tab === "highlights" ? "হাইলাইট" : "ভিডিও"} যোগ Aরুন
         </button>
       </div>
 
@@ -3107,7 +3174,7 @@ const FrontendContentManager = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h3 className="text-base font-extrabold text-gray-900">{editItem._idx >= 0 ? "সম্পাদনা" : "নতুন যোগ করুন"}</h3>
+              <h3 className="text-base font-extrabold text-gray-900">{editItem._idx >= 0 ? "Edit" : "নতুন যোগ Aরুন"}</h3>
               <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-5 space-y-4">
@@ -3115,7 +3182,7 @@ const FrontendContentManager = () => {
                 { key: "title", label: "টাইটেল *", placeholder: "টাইটেল লিখুন" },
                 { key: "subtitle", label: "সাবটাইটেল", placeholder: "সাবটাইটেল" },
                 { key: "description", label: tab === "highlights" ? "বিবরণ" : null, placeholder: "বিবরণ" },
-                { key: "icon", label: tab === "highlights" ? "আইকন (emoji বা text)" : null, placeholder: "🏭 বা Factory" },
+                { key: "icon", label: tab === "highlights" ? "আইAন (emoji বা text)" : null, placeholder: "🏭 বা Factory" },
                 { key: "youtubeUrl", label: tab === "videos" ? "YouTube URL *" : null, placeholder: "https://youtube.com/watch?v=..." },
               ].filter(f => f.label).map(f => (
                 <div key={f.key}>
@@ -3135,7 +3202,7 @@ const FrontendContentManager = () => {
                     ) : editItem.imageUrl ? (
                       <img src={editItem.imageUrl} alt="current" className="h-24 object-contain rounded-lg" />
                     ) : (
-                      <><Image className="w-8 h-8 text-gray-300 mb-1" /><span className="text-xs text-gray-400">ছবি আপলোড করুন</span></>
+                      <><Image className="w-8 h-8 text-gray-300 mb-1" /><span className="text-xs text-gray-400">ছবি আপলোড Aরুন</span></>
                     )}
                   </div>
                   <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile(e.target.files[0])} />
@@ -3146,14 +3213,14 @@ const FrontendContentManager = () => {
                 <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">স্ট্যাটাস</label>
                 <button type="button" onClick={() => setEditItem(prev => ({ ...prev, isActive: !prev.isActive }))}
                   className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${editItem.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                  {editItem.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                  {editItem.isActive ? "সA্রিয়" : "নিষ্A্রিয়"}
                 </button>
               </div>
 
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setShowForm(false)} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50">বাতিল</button>
                 <button onClick={handleSaveItem} disabled={saving} className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50">
-                  {saving ? "সেভ হচ্ছে..." : "সেভ করুন"}
+                  {saving ? "সেভ হচ্ছে..." : "সেভ Aরুন"}
                 </button>
               </div>
             </div>
@@ -3189,7 +3256,7 @@ const FrontendContentManager = () => {
                 </div>
                 <button onClick={() => handleToggle(idx)}
                   className={`shrink-0 px-2.5 py-1 rounded-full text-[9px] font-bold border ${item.isActive ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-                  {item.isActive ? "সক্রিয়" : "নিষ্ক্রিয়"}
+                  {item.isActive ? "সA্রিয়" : "নিষ্A্রিয়"}
                 </button>
               </div>
               <div className="flex items-center justify-end gap-1.5 mt-3 pt-3 border-t border-gray-50">
@@ -3202,8 +3269,8 @@ const FrontendContentManager = () => {
         {items.length === 0 && (
           <div className="col-span-3 bg-white rounded-2xl border border-gray-100 p-10 flex flex-col items-center text-center">
             <Layers className="w-12 h-12 text-gray-200 mb-3" />
-            <p className="text-sm font-bold text-gray-400">কোনো {tab === "highlights" ? "হাইলাইট" : "ভিডিও"} নেই</p>
-            <p className="text-xs text-gray-300 mt-1">উপরে "+ নতুন যোগ করুন" ক্লিক করুন</p>
+            <p className="text-sm font-bold text-gray-400">Aোনো {tab === "highlights" ? "হাইলাইট" : "ভিডিও"} নেই</p>
+            <p className="text-xs text-gray-300 mt-1">উপরে "+ নতুন যোগ Aরুন" A্লিA Aরুন</p>
           </div>
         )}
       </div>
@@ -3250,7 +3317,7 @@ const FilterSettingsManager = () => {
       });
       setRanges(updated);
       alert("✅ সেভ হয়েছে!");
-    } catch { alert("❌ সেভ করতে সমস্যা"); }
+    } catch { alert("❌ সেভ Aরতে সমস্যা"); }
     setSaving(false);
   };
 
@@ -3279,8 +3346,8 @@ const FilterSettingsManager = () => {
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-2xl font-extrabold text-gray-900">ফিল্টার সেটিংস</h3>
-          <p className="text-sm text-gray-500 mt-1">প্রোডাক্ট পেজের প্রাইস রেঞ্জ ফিল্টার কাস্টমাইজ করুন</p>
+          <h3 className="text-2xl font-extrabold text-gray-900">Filter Settings</h3>
+          <p className="text-sm text-gray-500 mt-1">Products পেজের প্রাইস রেঞ্জ ফিল্টার Aাস্টমাইজ Aরুন</p>
         </div>
         <button onClick={() => setShowAdd(true)} disabled={saving} className="flex items-center gap-2 bg-gradient-to-r from-vision-blue to-vision-cyan text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:shadow-lg disabled:opacity-50 transition-all">
           {saving ? <><RefreshCcw className="w-4 h-4 animate-spin" /> সেভ হচ্ছে...</> : <><Plus className="w-4 h-4" /> নতুন রেঞ্জ</>}
@@ -3312,11 +3379,11 @@ const FilterSettingsManager = () => {
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-vision-blue/50" />
                 </div>
               </div>
-              <p className="text-[11px] text-gray-400">সর্বনিম্ন/সর্বোচ্চ ফাঁকা রাখলে সেই সীমা প্রযোজ্য হবে না (যেমন: Tk 70,000+ এর জন্য শুধু সর্বনিম্ন দিন)</p>
+              <p className="text-[11px] text-gray-400">সর্বনিম্ন/সর্বোচ্চ ফাঁAা রাখলে সেই সীমা প্রযোজ্য হবে না (যেমন: Tk 70,000+ এর জন্য শুধু সর্বনিম্ন দিন)</p>
             </div>
             <div className="flex gap-3 pt-2">
               <button onClick={() => setShowAdd(false)} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50">বাতিল</button>
-              <button onClick={handleAdd} className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-bold hover:shadow-lg">যোগ করুন</button>
+              <button onClick={handleAdd} className="flex-1 px-4 py-3 bg-gradient-to-r from-vision-blue to-vision-cyan text-white rounded-xl text-xs font-bold hover:shadow-lg">যোগ Aরুন</button>
             </div>
           </div>
         </div>
@@ -3327,10 +3394,10 @@ const FilterSettingsManager = () => {
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="p-4 bg-gray-50 border-b border-gray-100">
-            <p className="text-xs text-gray-500">"All Prices" অপশনটি সবসময় স্বয়ংক্রিয়ভাবে প্রথমে থাকবে</p>
+            <p className="text-xs text-gray-500">"All Prices" অপশনটি সবসময় স্বয়ংA্রিয়ভাবে প্রথমে থাAবে</p>
           </div>
           {ranges.length === 0 ? (
-            <div className="p-10 text-center text-gray-400 text-sm">কোনো কাস্টম প্রাইস রেঞ্জ নেই। নতুন যোগ করুন।</div>
+            <div className="p-10 text-center text-gray-400 text-sm">Aোনো Aাস্টম প্রাইস রেঞ্জ নেই। নতুন যোগ Aরুন।</div>
           ) : (
             <table className="w-full">
               <thead>
@@ -3361,7 +3428,7 @@ const FilterSettingsManager = () => {
 
       {ranges.length > 0 && (
         <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-          <p className="text-xs font-bold text-blue-700 mb-2">প্রিভিউ (প্রোডাক্ট পেজে যেভাবে দেখাবে):</p>
+          <p className="text-xs font-bold text-blue-700 mb-2">প্রিভিউ (Products পেজে যেভাবে দেখাবে):</p>
           <div className="flex flex-wrap gap-2">
             <span className="px-3 py-1.5 bg-vision-blue text-white rounded-lg text-xs font-bold">All Prices</span>
             {ranges.map(r => (

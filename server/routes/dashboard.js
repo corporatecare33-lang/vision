@@ -4,8 +4,33 @@ import Order from "../models/Order.js";
 import Admin from "../models/Admin.js";
 import Page from "../models/Page.js";
 import Product from "../models/Product.js";
+import { categories as fallbackCategories } from "../../src/data/data.js";
 
 const router = express.Router();
+
+// In-memory storage
+let inMemoryOrders = [];
+let inMemoryAdmins = [
+  {
+    _id: "admin1",
+    username: "superadmin",
+    password: "admin123",
+    role: "superadmin",
+    isActive: true
+  },
+];
+let inMemoryPages = [];
+let inMemoryProducts = [];
+
+// Import products from data.js
+const initInMemoryProducts = async () => {
+  const { products: demoProducts } = await import("../../src/data/data.js");
+  inMemoryProducts = demoProducts.map(p => ({ ...p, _id: `prod-${p.id}`, stock: 50, lowStockThreshold: 10 }));
+};
+initInMemoryProducts();
+
+// Export in-memory data for use in other routes
+export { inMemoryOrders, inMemoryAdmins, inMemoryPages, inMemoryProducts };
 
 // ============================================================
 // DASHBOARD STATS
@@ -241,7 +266,30 @@ router.get("/sales-report", async (req, res) => {
 router.get("/orders", async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
-      return res.json({ orders: [], total: 0, page: 1, pages: 1 });
+      const { search, status, page = 1, limit = 20 } = req.query;
+      let filteredOrders = [...inMemoryOrders];
+      
+      if (status) {
+        filteredOrders = filteredOrders.filter(o => o.orderStatus === status);
+      }
+      
+      if (search) {
+        const searchLower = search.toLowerCase();
+        filteredOrders = filteredOrders.filter(o => 
+          o.customer?.name?.toLowerCase().includes(searchLower) || 
+          o.customer?.phone?.toLowerCase().includes(searchLower) || 
+          o.orderId?.toLowerCase().includes(searchLower)
+        );
+      }
+      
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      const paginatedOrders = filteredOrders.slice(skip, skip + parseInt(limit));
+      return res.json({ 
+        orders: paginatedOrders, 
+        total: filteredOrders.length, 
+        page: parseInt(page), 
+        pages: Math.ceil(filteredOrders.length / parseInt(limit)) 
+      });
     }
 
     const { status, page = 1, limit = 20, search } = req.query;

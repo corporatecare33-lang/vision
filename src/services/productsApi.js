@@ -11,6 +11,8 @@ export const normalizeProduct = (product) => ({
   id: product.id || product._id,
   price: String(product.price ?? ""),
   specs: Array.isArray(product.specs) ? product.specs : [],
+  images: Array.isArray(product.images) ? product.images : [],
+  priceOptions: Array.isArray(product.priceOptions) ? product.priceOptions : [],
 });
 
 // Admin Auth API

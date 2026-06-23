@@ -14,7 +14,7 @@ const escapePdfText = (value) =>
 
 const downloadPdf = (order) => {
   const deliveryLabel = order.deliveryArea === "inside" ? "Inside Dhaka" : "Outside Dhaka";
-  const format$= (value) => `$${Number(value || 0).toLocaleString("en-US")}`;
+  const format$ = (value) => `$${Number(value || 0).toLocaleString("en-US")}`;
   const fitText = (value, maxLength) => {
     const text = String(value ?? "");
     return text.length > maxLength ? `${text.slice(0, maxLength - 3)}...` : text;
@@ -77,7 +77,7 @@ const downloadPdf = (order) => {
     text(fitText(item.name, 38), 60, rowY, 9, "F2");
     text(fitText(item.option, 17), 310, rowY, 9);
     text(String(item.quantity), 418, rowY, 9, "F2");
-    text(formatTk(item.price * item.quantity), 488, rowY, 9, "F2", "0.04 0.20 0.45");
+    text(format$(item.price * item.quantity), 488, rowY, 9, "F2", "0.04 0.20 0.45");
     rowY -= 30;
   });
   if (order.items.length > 10) {
@@ -88,12 +88,12 @@ const downloadPdf = (order) => {
   rect(350, totalBoxY, 220, 96, "0.96 0.99 1");
   strokeRect(350, totalBoxY, 220, 96, "0.65 0.88 0.92");
   text("Subtotal", 368, totalBoxY + 68, 10);
-  text(formatTk(order.subtotal), 482, totalBoxY + 68, 10, "F2");
+  text(format$(order.subtotal), 482, totalBoxY + 68, 10, "F2");
   text("Delivery", 368, totalBoxY + 46, 10);
-  text(formatTk(order.deliveryFee), 482, totalBoxY + 46, 10, "F2");
+  text(format$(order.deliveryFee), 482, totalBoxY + 46, 10, "F2");
   line(368, totalBoxY + 32, 552, totalBoxY + 32, "0.65 0.88 0.92");
   text("Total", 368, totalBoxY + 12, 14, "F2", "0.04 0.20 0.45");
-  text(formatTk(order.total), 480, totalBoxY + 12, 14, "F2", "0.04 0.20 0.45");
+  text(format$(order.total), 480, totalBoxY + 12, 14, "F2", "0.04 0.20 0.45");
 
   text("Thank you for shopping with Vision Appliances.", 42, 72, 10, "F2", "0.04 0.20 0.45");
   text("Please keep this invoice for your order confirmation and delivery reference.", 42, 56, 8, "F1", "0.39 0.45 0.55");
@@ -216,9 +216,9 @@ const ThankYou = () => {
             </div>
 
             <div className="ml-auto mt-6 max-w-sm space-y-2 border-t border-slate-200 pt-4">
-              <div className="flex justify-between"><span>Subtotal</span><strong>${order.subtotal}</strong></div>
-              <div className="flex justify-between"><span>Delivery</span><strong>${order.deliveryFee}</strong></div>
-              <div className="flex justify-between text-xl font-black text-vision-dark"><span>Total</span><span>${order.total}</span></div>
+              <div className="flex justify-between"><span>Subtotal</span><strong>${Number(order.subtotal || 0).toLocaleString()}</strong></div>
+              <div className="flex justify-between"><span>Delivery</span><strong>{order.deliveryFee === 0 ? "FREE" : `$${Number(order.deliveryFee || 0).toLocaleString()}`}</strong></div>
+              <div className="flex justify-between text-xl font-black text-vision-dark"><span>Total</span><span>${Number(order.total || 0).toLocaleString()}</span></div>
             </div>
           </div>
         </div>

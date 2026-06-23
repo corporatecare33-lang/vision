@@ -16,7 +16,7 @@ import Category from "./models/Category.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, "../public");
-import dashboardRoutes from "./routes/dashboard.js";
+import dashboardRoutes, { inMemoryOrders, inMemoryProducts, inMemoryAdmins } from "./routes/dashboard.js";
 import stockRoutes from "./routes/stock.js";
 import categoryRoutes from "./routes/categories.js";
 import bannerRoutes from "./routes/banner.js";
@@ -35,8 +35,19 @@ const upload = multer({
 const port = process.env.PORT || 5000;
 const clientOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
 
-app.use(cors({ origin: clientOrigin }));
+app.use(cors({ origin: "*" }));
 app.use(express.json());
+
+// In-memory categories (from data.js)
+let inMemoryCategories = [];
+let inMemorySettings = {};
+
+// Initialize in-memory categories with demo data
+const initInMemoryCategories = async () => {
+  const { categories: demoCategories } = await import("../src/data/data.js");
+  inMemoryCategories = demoCategories;
+};
+initInMemoryCategories();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -76,10 +87,23 @@ const parsePriceOptions = (value) => {
 
 const normalizeProduct = (body, imageData = {}) => {
   const baseId = body.id || `${body.name || "product"}-${body.model || Date.now()}`;
+  
+  // Parse existing images from JSON if provided
+  let existingImages = [];
+  if (body.existingImages) {
+    try {
+      existingImages = JSON.parse(body.existingImages);
+    } catch (e) {
+      existingImages = [];
+    }
+  }
+  
   const mergedImages = [
-    ...(Array.isArray(body.images) ? body.images : []),
+    ...(Array.isArray(existingImages) ? existingImages : []),
     ...(imageData.images || []),
   ].filter(Boolean);
+  
+  // For public IDs, we need to keep the ones that correspond to existing images (but we don't track that here, so just keep existing imagePublicIds and add new ones)
   const mergedImagePublicIds = [
     ...(Array.isArray(body.imagePublicIds) ? body.imagePublicIds : []),
     ...(imageData.imagePublicIds || []),
@@ -227,26 +251,30 @@ app.post("/api/admin/login", async (req, res) => {
   try {
     const { username, password } = req.body;
     const loginId = username || req.body.email;
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({ message: "Database not connected. Please connect MongoDB and seed admin first." });
+    
+    let admin = null;
+    if (mongoose.connection.readyState === 1) {
+      // Real DB mode - schema.statics.findByCredentials ব্যবহার করে
+      admin = await Admin.findByCredentials(loginId);
+      if (admin) {
+        const isPasswordValid = await admin.comparePassword(password);
+        if (!isPasswordValid) {
+          return res.status(400).json({ message: "ভুল ব্যবহারকারীর নাম বা পাসওয়ার্ড!" });
+        }
+        admin.lastLogin = new Date();
+        await admin.save({ validateBeforeSave: false });
+      }
+    } else {
+      // In-memory mode
+      admin = inMemoryAdmins.find(a => 
+        (a.username === loginId || a.email === loginId) && 
+        a.password === password
+      );
     }
-    
-    
-    // Real DB mode - schema.statics.findByCredentials ব্যবহার করে
-    const admin = await Admin.findByCredentials(loginId);
+
     if (!admin) {
       return res.status(400).json({ message: "ভুল ব্যবহারকারীর নাম বা পাসওয়ার্ড!" });
     }
-    
-    // schema.methods.comparePassword ব্যবহার করে
-    const isPasswordValid = await admin.comparePassword(password);
-    if (!isPasswordValid) {
-      return res.status(400).json({ message: "ভুল ব্যবহারকারীর নাম বা পাসওয়ার্ড!" });
-    }
-    
-    // lastLogin আপডেট
-    admin.lastLogin = new Date();
-    await admin.save({ validateBeforeSave: false });
     
     const token = jwt.sign(
       { id: admin._id, email: admin.email, username: admin.username, role: admin.role },
@@ -256,7 +284,7 @@ app.post("/api/admin/login", async (req, res) => {
     
     res.json({
       token,
-      admin: admin.toJSON(),
+      admin: admin.toJSON ? admin.toJSON() : { ...admin, password: undefined },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -435,23 +463,28 @@ app.post("/api/admin/seed", async (req, res) => {
   }
 });
 
-// Protected Product Routes
-app.get("/api/products", async (_req, res, next) => {
+app.get("/api/products", async (_req, res) => {
   try {
-    const products = mongoose.connection.readyState === 1 
-      ? await Product.find().sort({ createdAt: -1 }).lean()
-      : [];
+    let products;
+    if (mongoose.connection.readyState !== 1) {
+      products = inMemoryProducts;
+    } else {
+      products = await Product.find().sort({ createdAt: -1 }).lean();
+    }
     res.json(products);
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: error.message });
   }
 });
 
-app.get("/api/products/:id", async (req, res, next) => {
+app.get("/api/products/:id", async (req, res) => {
   try {
-    const product = mongoose.connection.readyState === 1
-      ? await Product.findOne({ id: req.params.id }).lean()
-      : null;
+    let product;
+    if (mongoose.connection.readyState === 1) {
+      product = await Product.findOne({ id: req.params.id }).lean();
+    } else {
+      product = inMemoryProducts.find(p => p.id === req.params.id || p._id === req.params.id);
+    }
 
     if (!product) {
       res.status(404).json({ message: "Product not found" });
@@ -460,11 +493,11 @@ app.get("/api/products/:id", async (req, res, next) => {
 
     res.json(product);
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: error.message });
   }
 });
 
-app.post("/api/products", authMiddleware, upload.fields([{ name: "image", maxCount: 1 }, { name: "images", maxCount: 10 }]), async (req, res, next) => {
+app.post("/api/products", authMiddleware, upload.fields([{ name: "image", maxCount: 1 }, { name: "images", maxCount: 10 }]), async (req, res) => {
   try {
     let imageData = {};
     const mainImage = req.files?.image?.[0];
@@ -480,11 +513,11 @@ app.post("/api/products", authMiddleware, upload.fields([{ name: "image", maxCou
       : payload;
     res.status(201).json(product);
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: error.message });
   }
 });
 
-app.put("/api/products/:id", authMiddleware, upload.fields([{ name: "image", maxCount: 1 }, { name: "images", maxCount: 10 }]), async (req, res, next) => {
+app.put("/api/products/:id", authMiddleware, upload.fields([{ name: "image", maxCount: 1 }, { name: "images", maxCount: 10 }]), async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
       return res.status(500).json({ message: "Database not connected" });
@@ -522,11 +555,11 @@ app.put("/api/products/:id", authMiddleware, upload.fields([{ name: "image", max
     const product = await Product.findOneAndUpdate({ id: req.params.id }, payload, { new: true });
     res.json(product);
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: error.message });
   }
 });
 
-app.delete("/api/products/:id", authMiddleware, async (req, res, next) => {
+app.delete("/api/products/:id", authMiddleware, async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
       return res.status(500).json({ message: "Database not connected" });
@@ -547,23 +580,20 @@ app.delete("/api/products/:id", authMiddleware, async (req, res, next) => {
 
     res.json({ ok: true });
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: error.message });
   }
 });
 
 // Public Order Creation
 app.post("/api/orders", async (req, res) => {
   try {
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({ message: "Database not connected" });
-    }
     const { customer, items, totalAmount, paymentMethod, deliveryCharge, discount, notes, couponCode, deliveryArea } = req.body;
     if (!customer?.name || !customer?.phone || !items?.length) {
       return res.status(400).json({ message: "নাম, ফোন এবং পণ্য আবশ্যক" });
     }
 
     let couponDiscount = Number(discount) || 0;
-    if (couponCode) {
+    if (couponCode && mongoose.connection.readyState === 1) {
       const Coupon = (await import("./models/Coupon.js")).default;
       const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
       if (coupon) {
@@ -574,14 +604,35 @@ app.post("/api/orders", async (req, res) => {
     const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "";
     const userAgent = req.headers["user-agent"] || "";
 
-    const phoneCount = await Order.countDocuments({ "customer.phone": customer.phone, orderStatus: { $nin: ["delivered", "cancelled"] } });
+    let phoneCount = 0;
+    if (mongoose.connection.readyState === 1) {
+      phoneCount = await Order.countDocuments({ "customer.phone": customer.phone, orderStatus: { $nin: ["delivered", "cancelled"] } });
+    } else {
+      phoneCount = inMemoryOrders.filter(o =>
+        o.customer.phone === customer.phone &&
+        !["delivered", "cancelled"].includes(o.orderStatus)
+      ).length;
+    }
     const isFraudSuspected = phoneCount > 3;
 
-    const order = await Order.create({
+    const date = new Date();
+    const prefix = `ORD-${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}-`;
+    let count = 0;
+    if (mongoose.connection.readyState === 1) {
+      count = await Order.countDocuments();
+    } else {
+      count = inMemoryOrders.length;
+    }
+    const newOrderId = `${prefix}${String(count + 1).padStart(4, "0")}`;
+
+    const orderData = {
+      orderId: newOrderId,
       customer: { name: customer.name, phone: customer.phone, email: customer.email || "", address: customer.address || "" },
       items: items.map(i => ({ productId: i.id || i.productId, name: i.name, price: i.price, quantity: i.quantity })),
       totalAmount: Number(totalAmount),
       paymentMethod: paymentMethod || "cod",
+      paymentStatus: paymentMethod === "cod" ? "pending" : "pending",
+      orderStatus: "pending",
       deliveryCharge: Number(deliveryCharge) || 0,
       discount: couponDiscount,
       notes: notes || `Delivery Area: ${deliveryArea || ""}`,
@@ -589,10 +640,20 @@ app.post("/api/orders", async (req, res) => {
       userAgent,
       isFraudSuspected,
       fraudReason: isFraudSuspected ? "Same phone has multiple pending orders" : "",
-    });
+      createdAt: new Date(),
+    };
 
-    res.status(201).json({ orderId: order.orderId, _id: order._id });
+    let createdOrder;
+    if (mongoose.connection.readyState === 1) {
+      createdOrder = await Order.create(orderData);
+    } else {
+      createdOrder = { ...orderData, _id: `order-${Date.now()}` };
+      inMemoryOrders.push(createdOrder);
+    }
+
+    res.status(201).json({ orderId: orderData.orderId, _id: createdOrder._id });
   } catch (error) {
+    console.error("Order creation error:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -652,10 +713,388 @@ app.post("/api/orders/:id/steadfast", authMiddleware, async (req, res) => {
   }
 });
 
+// Pass in-memory data to dashboard routes
+const createDashboardRoutes = (inMemoryData) => {
+  const router = express.Router();
+
+  // DASHBOARD STATS
+  router.get("/stats", async (req, res) => {
+    try {
+      const { inMemoryProducts, inMemoryOrders } = inMemoryData;
+      if (mongoose.connection.readyState !== 1) {
+        const totalOrders = inMemoryOrders.length;
+        const totalProducts = inMemoryProducts.length;
+        const totalCustomers = [...new Set(inMemoryOrders.map(o => o.customer.phone))].length;
+        const totalSales = inMemoryOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        const pendingOrders = inMemoryOrders.filter(o => o.orderStatus === "pending").length;
+        const completedOrders = inMemoryOrders.filter(o => o.orderStatus === "delivered").length;
+        const inCourier = inMemoryOrders.filter(o => o.orderStatus === "shipped").length;
+        const cancelledOrders = inMemoryOrders.filter(o => o.orderStatus === "cancelled").length;
+
+        return res.json({
+          totalOrders,
+          totalSales,
+          totalCustomers,
+          totalProducts,
+          pendingOrders,
+          completedOrders,
+          inCourier,
+          cancelledOrders,
+          monthlyRevenue: 0,
+          revenueGrowth: 0,
+          ordersGrowth: 0,
+          customersGrowth: 0,
+          salesGrowth: 0,
+          productsGrowth: 0,
+          monthlySalesData: [],
+          recentOrders: inMemoryOrders.slice(-5).reverse().map((o) => ({
+            _id: o._id,
+            orderId: o.orderId,
+            customer: o.customer,
+            totalAmount: o.totalAmount,
+            paymentStatus: o.paymentStatus,
+            orderStatus: o.orderStatus,
+            createdAt: o.createdAt,
+          })),
+          fraudOrders: inMemoryOrders.filter(o => o.isFraudSuspected).length,
+          recentProducts: inMemoryProducts.slice(-5).reverse(),
+          inventoryAlerts: inMemoryProducts.filter(p => p.stock <= p.lowStockThreshold).map((p) => ({
+            _id: p._id,
+            id: p.id,
+            name: p.name,
+            stock: p.stock,
+            lowStockThreshold: p.lowStockThreshold,
+            status: p.stock <= 0 ? "out" : "low",
+          })).slice(0, 8),
+          topSellingProducts: [],
+        });
+      }
+
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+      const totalOrders = await Order.countDocuments();
+      const totalProducts = await Product.countDocuments();
+      const totalCustomers = await Order.distinct("customer.phone").then((r) => r.length);
+      const totalSalesAgg = await Order.aggregate([
+        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+      ]);
+      const totalSales = totalSalesAgg[0]?.total || 0;
+
+      const pendingOrders = await Order.countDocuments({ orderStatus: "pending" });
+      const completedOrders = await Order.countDocuments({ orderStatus: "delivered" });
+      const inCourier = await Order.countDocuments({ orderStatus: "shipped" });
+      const cancelledOrders = await Order.countDocuments({ orderStatus: "cancelled" });
+
+      // Monthly revenue
+      const monthlyAgg = await Order.aggregate([
+        { $match: { createdAt: { $gte: startOfMonth }, orderStatus: { $ne: "cancelled" } } },
+        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+      ]);
+      const monthlyRevenue = monthlyAgg[0]?.total || 0;
+
+      // Last month revenue for growth
+      const lastMonthAgg = await Order.aggregate([
+        { $match: { createdAt: { $gte: startOfLastMonth, $lt: startOfMonth }, orderStatus: { $ne: "cancelled" } } },
+        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+      ]);
+      const lastMonthRevenue = lastMonthAgg[0]?.total || 0;
+      const revenueGrowth = lastMonthRevenue > 0 ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0;
+
+      // Monthly sales data for chart
+      const monthlySalesData = await Order.aggregate([
+        { $match: { orderStatus: { $ne: "cancelled" } } },
+        {
+          $group: {
+            _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+            total: { $sum: "$totalAmount" },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1 } },
+        { $limit: 12 },
+      ]);
+
+      // Recent orders
+      const recentOrders = await Order.find()
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .lean();
+
+      const inventoryAlerts = await Product.find({
+        $expr: { $lte: ["$stock", "$lowStockThreshold"] },
+      })
+        .sort({ stock: 1, updatedAt: -1 })
+        .limit(8)
+        .lean();
+
+      const topSellingProducts = await Order.aggregate([
+        { $unwind: "$items" },
+        { $match: { orderStatus: { $ne: "cancelled" } } },
+        {
+          $group: {
+            _id: "$items.productId",
+            name: { $first: "$items.name" },
+            sales: { $sum: "$items.quantity" },
+            revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+            price: { $last: "$items.price" },
+          },
+        },
+        { $sort: { sales: -1, revenue: -1 } },
+        { $limit: 5 },
+      ]);
+
+      // Fraud suspected orders
+      const fraudOrders = await Order.countDocuments({ isFraudSuspected: true });
+
+      res.json({
+        totalOrders,
+        totalSales,
+        totalCustomers,
+        totalProducts,
+        pendingOrders,
+        completedOrders,
+        inCourier,
+        cancelledOrders,
+        monthlyRevenue,
+        revenueGrowth,
+        ordersGrowth: 0,
+        customersGrowth: 0,
+        salesGrowth: 0,
+        productsGrowth: 0,
+        monthlySalesData,
+        recentOrders: recentOrders.map((o) => ({
+          _id: o._id,
+          orderId: o.orderId,
+          customer: o.customer,
+          totalAmount: o.totalAmount,
+          paymentStatus: o.paymentStatus,
+          orderStatus: o.orderStatus,
+          createdAt: o.createdAt,
+        })),
+        fraudOrders,
+        recentProducts: await Product.find().sort({ createdAt: -1 }).limit(5).lean(),
+        inventoryAlerts: inventoryAlerts.map((p) => ({
+          _id: p._id,
+          id: p.id,
+          name: p.name,
+          stock: p.stock,
+          lowStockThreshold: p.lowStockThreshold,
+          status: p.stock <= 0 ? "out" : "low",
+        })),
+        topSellingProducts,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // SALES REPORT
+  router.get("/sales-report", async (req, res) => {
+    try {
+      const { inMemoryOrders } = inMemoryData;
+      if (mongoose.connection.readyState !== 1) {
+        return res.json({
+          monthly: [
+            { month: "জানু", sales: 45000, orders: 28 },
+            { month: "ফেব্রু", sales: 52000, orders: 35 },
+            { month: "মার্চ", sales: 48000, orders: 30 },
+            { month: "এপ্রি", sales: 61000, orders: 42 },
+            { month: "মে", sales: 78000, orders: 55 },
+            { month: "জুন", sales: 85420, orders: 61 },
+          ],
+          totalSales: inMemoryOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0),
+          totalOrders: inMemoryOrders.length,
+          averageOrderValue: inMemoryOrders.length > 0 ? Math.round(inMemoryOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0) / inMemoryOrders.length) : 0,
+        });
+      }
+
+      const now = new Date();
+      const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
+      const monthlyData = await Order.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: sixMonthsAgo },
+            orderStatus: { $ne: "cancelled" },
+          },
+        },
+        {
+          $group: {
+            _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+            sales: { $sum: "$totalAmount" },
+            orders: { $sum: 1 },
+          },
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1 } },
+      ]);
+
+      const monthNames = ["জানু", "ফেব্রু", "মার্চ", "এপ্রি", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টে", "অক্টো", "নভে", "ডিসে"];
+      const monthly = monthlyData.map((d) => ({
+        month: monthNames[d._id.month - 1] || `${d._id.month}`,
+        sales: d.sales,
+        orders: d.orders,
+      }));
+
+      const totalSalesAgg = await Order.aggregate([
+        { $match: { orderStatus: { $ne: "cancelled" } } },
+        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+      ]);
+      const totalSales = totalSalesAgg[0]?.total || 0;
+      const totalOrdersCount = await Order.countDocuments({ orderStatus: { $ne: "cancelled" } });
+      const averageOrderValue = totalOrdersCount > 0 ? Math.round(totalSales / totalOrdersCount) : 0;
+
+      // Fill missing months with zero data
+      const filledMonthly = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthIdx = d.getMonth();
+        const existing = monthly.find((m) => m.month === monthNames[monthIdx]);
+        filledMonthly.push({
+          month: monthNames[monthIdx],
+          sales: existing?.sales || 0,
+          orders: existing?.orders || 0,
+        });
+      }
+
+      res.json({
+        monthly: filledMonthly,
+        totalSales,
+        totalOrders: totalOrdersCount,
+        averageOrderValue,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ORDERS
+  router.get("/orders", async (req, res) => {
+    try {
+      const { inMemoryOrders } = inMemoryData;
+      if (mongoose.connection.readyState !== 1) {
+        const { status, page = 1, limit = 20, search } = req.query;
+        let filteredOrders = inMemoryOrders.slice().reverse();
+        if (status) filteredOrders = filteredOrders.filter(o => o.orderStatus === status);
+        if (search) {
+          const searchLower = search.toLowerCase();
+          filteredOrders = filteredOrders.filter(o => 
+            o.customer.name.toLowerCase().includes(searchLower) ||
+            o.customer.phone.toLowerCase().includes(searchLower) ||
+            o.orderId.toLowerCase().includes(searchLower)
+          );
+        }
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const paginatedOrders = filteredOrders.slice(skip, skip + parseInt(limit));
+        return res.json({ orders: paginatedOrders, total: filteredOrders.length, page: parseInt(page), pages: Math.ceil(filteredOrders.length / parseInt(limit)) });
+      }
+
+      const { status, page = 1, limit = 20, search } = req.query;
+      const query = {};
+      if (status) query.orderStatus = status;
+      if (search) {
+        query.$or = [
+          { "customer.name": { $regex: search, $options: "i" } },
+          { "customer.phone": { $regex: search, $options: "i" } },
+          { orderId: { $regex: search, $options: "i" } },
+        ];
+      }
+
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      const [orders, total] = await Promise.all([
+        Order.find(query).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)).lean(),
+        Order.countDocuments(query),
+      ]);
+
+      res.json({ orders, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  router.put("/orders/:id/status", async (req, res) => {
+    try {
+      const { inMemoryOrders } = inMemoryData;
+      if (mongoose.connection.readyState !== 1) {
+        const orderIdx = inMemoryOrders.findIndex(o => o._id === req.params.id || o.orderId === req.params.id);
+        if (orderIdx === -1) return res.status(404).json({ message: "অর্ডার পাওয়া যায়নি" });
+        const { orderStatus, paymentStatus, trackingNumber, courierService } = req.body;
+        if (orderStatus) inMemoryOrders[orderIdx].orderStatus = orderStatus;
+        if (paymentStatus) inMemoryOrders[orderIdx].paymentStatus = paymentStatus;
+        if (trackingNumber !== undefined) inMemoryOrders[orderIdx].trackingNumber = trackingNumber;
+        if (courierService !== undefined) inMemoryOrders[orderIdx].courierService = courierService;
+        return res.json(inMemoryOrders[orderIdx]);
+      }
+
+      const { orderStatus, paymentStatus, trackingNumber, courierService } = req.body;
+      const update = {};
+      if (orderStatus) update.orderStatus = orderStatus;
+      if (paymentStatus) update.paymentStatus = paymentStatus;
+      if (trackingNumber !== undefined) update.trackingNumber = trackingNumber;
+      if (courierService !== undefined) update.courierService = courierService;
+
+      const order = await Order.findByIdAndUpdate(req.params.id, update, { new: true });
+      if (!order) return res.status(404).json({ message: "অর্ডার পাওয়া যায়নি" });
+
+      res.json(order);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // USERS
+  router.get("/users", async (req, res) => {
+    try {
+      const { inMemoryAdmins } = inMemoryData;
+      if (mongoose.connection.readyState !== 1) return res.json(inMemoryAdmins.map(a => ({ ...a, password: undefined })));
+
+      const users = await Admin.find().sort({ createdAt: -1 }).lean();
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  router.put("/users/:id/status", async (req, res) => {
+    try {
+      const { inMemoryAdmins } = inMemoryData;
+      if (mongoose.connection.readyState !== 1) return res.json({ message: "স্ট্যাটাস আপডেট করা হয়েছে" });
+
+      const { isActive } = req.body;
+      const user = await Admin.findByIdAndUpdate(req.params.id, { isActive }, { new: true });
+      if (!user) return res.status(404).json({ message: "ইউজার পাওয়া যায়নি" });
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  router.put("/users/:id", async (req, res) => {
+    try {
+      const { inMemoryAdmins } = inMemoryData;
+      if (mongoose.connection.readyState !== 1) return res.json({ message: "ইউজার আপডেট করা হয়েছে" });
+
+      const { name, email, phone, role } = req.body;
+      const user = await Admin.findByIdAndUpdate(
+        req.params.id,
+        { name, email, phone, role },
+        { new: true, runValidators: true }
+      );
+      if (!user) return res.status(404).json({ message: "ইউজার পাওয়া যায়নি" });
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  return router;
+};
+
 // Dashboard Routes
-app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/dashboard", authMiddleware, dashboardRoutes);
 // Stock Management Routes
-app.use("/api/stock", stockRoutes);
+app.use("/api/stock", authMiddleware, stockRoutes);
 // Category Management Routes
 app.use("/api/categories", categoryRoutes);
 // Banner Routes
@@ -737,12 +1176,20 @@ app.post("/api/admin/seed-products", authMiddleware, async (_req, res) => {
         createReadStream(absPath).pipe(stream);
       });
 
-    // Collect unique image paths
-    const uniqueImages = [...new Set(demoProducts.map(p => p.image).filter(Boolean).filter(u => !u.startsWith("http")))];
+    // Collect all unique image paths (main + gallery)
+    const allImagePaths = new Set();
+    demoProducts.forEach(p => {
+      if (p.image && !p.image.startsWith("http")) allImagePaths.add(p.image);
+      if (p.images && Array.isArray(p.images)) {
+        p.images.forEach(img => {
+          if (img && !img.startsWith("http")) allImagePaths.add(img);
+        });
+      }
+    });
 
     // Upload all unique images to Cloudinary
     const imageMap = {};
-    for (const imgPath of uniqueImages) {
+    for (const imgPath of allImagePaths) {
       try {
         const result = await uploadLocalImage(imgPath);
         if (result?.secure_url) imageMap[imgPath] = { url: result.secure_url, publicId: result.public_id };
@@ -762,6 +1209,18 @@ app.post("/api/admin/seed-products", authMiddleware, async (_req, res) => {
     let prodCount = 0;
     for (const product of demoProducts) {
       const cloudImg = imageMap[product.image];
+      // Process gallery images
+      let cloudImages = [];
+      let cloudImagePublicIds = [];
+      if (product.images && Array.isArray(product.images)) {
+        product.images.forEach(img => {
+          const cloudGalleryImg = imageMap[img];
+          if (cloudGalleryImg) {
+            cloudImages.push(cloudGalleryImg.url);
+            cloudImagePublicIds.push(cloudGalleryImg.publicId);
+          }
+        });
+      }
       await Product.updateOne(
         { id: product.id },
         {
@@ -771,6 +1230,8 @@ app.post("/api/admin/seed-products", authMiddleware, async (_req, res) => {
             originalPrice: Math.round(Number(product.price) * 1.08),
             image: cloudImg?.url || product.image || "",
             imagePublicId: cloudImg?.publicId || "",
+            images: cloudImages,
+            imagePublicIds: cloudImagePublicIds,
             stock: 10,
             lowStockThreshold: 5,
             isActive: true,

@@ -25,6 +25,7 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedOption, setSelectedOption] = useState(0);
   const [activeTab, setActiveTab] = useState(tabs[0]);
+  const [selectedImage, setSelectedImage] = useState(0);
   const navigate = useNavigate();
   const { products } = useCatalogProducts();
   const product = products.find((item) => item.id === productId);
@@ -36,6 +37,7 @@ const ProductDetails = () => {
     setQuantity(1);
     setSelectedOption(0);
     setActiveTab(tabs[0]);
+    setSelectedImage(0);
   }, [productId]);
 
   if (!product) {
@@ -53,10 +55,8 @@ const ProductDetails = () => {
   const basePrice = Number(product.price);
   const productSpecs = product.specs || [];
   const hasPriceOptions = product.priceOptions && product.priceOptions.length > 0;
-  const optionPrices = hasPriceOptions
-    ? product.priceOptions
-    : productSpecs.slice(0, 3).filter(Boolean).map((label, index) => ({ label, price: basePrice + index * 2500 }));
-  const selectedPrice = optionPrices[selectedOption]?.price ?? basePrice;
+  const optionPrices = hasPriceOptions ? product.priceOptions : [];
+  const selectedPrice = hasPriceOptions ? (optionPrices[selectedOption]?.price ?? basePrice) : basePrice;
   const selectedOptionLabel = optionPrices[selectedOption]?.label || "";
   const originalPrice = Number(product.originalPrice) || 0;
   const showDiscount = originalPrice > selectedPrice;
@@ -150,26 +150,34 @@ const ProductDetails = () => {
           <div>
             <div className="relative flex min-h-[430px] items-center justify-center rounded-lg border border-slate-200 bg-white shadow-sm">
               <span className="absolute left-4 top-4 rounded-full bg-vision-blue px-3 py-1 text-xs font-black text-white">Vision</span>
-              {product.image ? (
-                <img src={product.image.startsWith("http") ? product.image : product.image} alt={product.name} className="h-full max-h-[390px] w-full object-contain p-8" />
-              ) : (
-                <div className="scale-125 md:scale-150">
-                  <ProductVisual type={product.visual} color={product.color} />
-                </div>
-              )}
+              {(() => {
+                const allImages = [product.image, ...(product.images || [])].filter(Boolean);
+                const currentImage = allImages[selectedImage] || product.image;
+                return currentImage ? (
+                  <img src={currentImage} alt={product.name} className="h-full max-h-[390px] w-full object-contain p-8" />
+                ) : (
+                  <div className="scale-125 md:scale-150">
+                    <ProductVisual type={product.visual} color={product.color} />
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="mt-4 grid grid-cols-4 gap-3">
-              {(product.images && product.images.length > 0 ? product.images : [product.image]).filter(Boolean).map((img, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  className={`flex aspect-square items-center justify-center rounded-md border bg-white transition ${index === 0 ? "border-vision-cyan ring-2 ring-cyan-100" : "border-slate-200 hover:border-cyan-300"}`}
-                  aria-label={`${product.name} preview ${index + 1}`}
-                >
-                  <img src={img.startsWith("http") ? img : img} alt={`${product.name} preview ${index + 1}`} className="h-full w-full object-contain p-3" />
-                </button>
-              ))}
+              {(() => {
+                const allImages = [product.image, ...(product.images || [])].filter(Boolean);
+                return allImages.map((img, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setSelectedImage(index)}
+                    className={`flex aspect-square items-center justify-center rounded-md border bg-white transition ${selectedImage === index ? "border-vision-cyan ring-2 ring-cyan-100" : "border-slate-200 hover:border-cyan-300"}`}
+                    aria-label={`${product.name} preview ${index + 1}`}
+                  >
+                    <img src={img} alt={`${product.name} preview ${index + 1}`} className="h-full w-full object-contain p-3" />
+                  </button>
+                ));
+              })()}
             </div>
           </div>
 
