@@ -1,0 +1,588 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+.hero-swiper .swiper-pagination-bullet {
+  width: 28px;
+  height: 3px;
+  border-radius: 999px;
+  background: #28c7cf;
+}
+
+.hero-swiper {
+  background: #f8fafc;
+}
+
+.hero-swiper .swiper-pagination {
+  bottom: 14px;
+}
+
+.hero-banner {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1600 / 500;
+  max-height: 750px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.hero-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hero-copy {
+  position: absolute;
+  display: none;
+  left: clamp(20px, 10vw, 214px);
+  top: 50%;
+  z-index: 2;
+  width: min(640px, 48vw);
+  transform: translateY(-50%);
+  color: #0b3474;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.hero-copy-right {
+  left: auto;
+  right: clamp(20px, 8vw, 210px);
+}
+
+.hero-copy-dark {
+  color: #ffffff;
+  text-shadow: 0 3px 12px rgba(2, 6, 23, 0.3);
+}
+
+.hero-copy p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.hero-copy h1 {
+  margin: 0;
+  max-width: 11ch;
+  font-size: clamp(34px, 4.2vw, 72px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.hero-copy span {
+  display: block;
+  max-width: 500px;
+  margin-top: 16px;
+  font-size: clamp(15px, 1.4vw, 22px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.hero-stage {
+  position: relative;
+  display: grid;
+  min-height: 360px;
+  place-items: center;
+}
+
+.hero-stage .product-visual {
+  transform: scale(1.55);
+}
+
+.hero-shelf {
+  position: absolute;
+  bottom: 38px;
+  width: min(520px, 90%);
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.12);
+  filter: blur(10px);
+}
+
+.product-visual {
+  position: relative;
+  display: grid;
+  width: 180px;
+  height: 220px;
+  place-items: center;
+  transition: transform 500ms ease;
+}
+
+.group:hover .product-visual {
+  transform: scale(1.06);
+}
+
+.fridge,
+.cooler,
+.washer {
+  position: relative;
+  width: 112px;
+  height: 188px;
+  overflow: hidden;
+  border-radius: 10px 10px 7px 7px;
+  box-shadow: 0 24px 38px rgba(15, 23, 42, 0.18), inset -10px 0 18px rgba(255, 255, 255, 0.12);
+}
+
+.fridge::before,
+.cooler::before,
+.washer::before {
+  content: "VISION";
+  position: absolute;
+  left: 14px;
+  top: 12px;
+  z-index: 2;
+  font-size: 8px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.fridge-seam {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 100%;
+  width: 2px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.fridge-highlight,
+.kettle-shine {
+  position: absolute;
+  inset: 0 auto 0 16%;
+  width: 18%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.35), transparent);
+}
+
+.fridge-display {
+  position: absolute;
+  right: 22px;
+  top: 56px;
+  width: 18px;
+  height: 48px;
+  border-radius: 4px;
+  background: rgba(2, 6, 23, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.tv-screen {
+  position: relative;
+  width: 170px;
+  height: 100px;
+  overflow: hidden;
+  border: 7px solid #111827;
+  border-radius: 10px;
+  box-shadow: 0 22px 36px rgba(15, 23, 42, 0.18);
+}
+
+.tv-screen::before {
+  content: "VISION";
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  z-index: 2;
+  font-size: 8px;
+  font-weight: 900;
+  color: white;
+}
+
+.tv-glow {
+  position: absolute;
+  inset: 15% 10%;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  filter: blur(18px);
+}
+
+.tv-line {
+  position: absolute;
+  left: -10%;
+  bottom: 18px;
+  width: 120%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.5);
+  transform: rotate(-8deg);
+}
+
+.tv-neck {
+  position: absolute;
+  bottom: 60px;
+  width: 16px;
+  height: 26px;
+  background: #334155;
+}
+
+.tv-base {
+  position: absolute;
+  bottom: 48px;
+  width: 78px;
+  height: 8px;
+  border-radius: 999px;
+  background: #111827;
+}
+
+.kettle-wrap {
+  height: 180px;
+}
+
+.kettle-body {
+  position: absolute;
+  bottom: 38px;
+  width: 96px;
+  height: 98px;
+  overflow: hidden;
+  border-radius: 26px 26px 34px 34px;
+  box-shadow: 0 20px 30px rgba(15, 23, 42, 0.18);
+}
+
+.kettle-body::before {
+  content: "VISION";
+  position: absolute;
+  left: 24px;
+  top: 42px;
+  font-size: 8px;
+  font-weight: 900;
+  color: white;
+}
+
+.kettle-handle {
+  position: absolute;
+  right: 22px;
+  bottom: 64px;
+  width: 42px;
+  height: 74px;
+  border: 10px solid #1f2937;
+  border-left: 0;
+  border-radius: 0 30px 30px 0;
+}
+
+.kettle-spout {
+  position: absolute;
+  left: 30px;
+  bottom: 98px;
+  width: 42px;
+  height: 24px;
+  clip-path: polygon(0 45%, 100% 0, 88% 62%, 0 78%);
+  background: #334155;
+}
+
+.kettle-lid {
+  position: absolute;
+  bottom: 132px;
+  width: 72px;
+  height: 13px;
+  border-radius: 999px;
+  background: #1f2937;
+}
+
+.cooler {
+  height: 200px;
+}
+
+.cooler-glass {
+  position: absolute;
+  left: 13px;
+  right: 13px;
+  top: 42px;
+  bottom: 18px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.cooler-glass span {
+  display: block;
+  height: 20px;
+  margin: 16px 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #38bdf8, #f97316, #22c55e);
+}
+
+.freezer-wrap {
+  height: 170px;
+}
+
+.freezer {
+  position: absolute;
+  bottom: 45px;
+  width: 160px;
+  height: 86px;
+  border-radius: 12px;
+  box-shadow: 0 20px 30px rgba(15, 23, 42, 0.16);
+}
+
+.freezer::before {
+  content: "VISION";
+  position: absolute;
+  left: 16px;
+  top: 17px;
+  font-size: 8px;
+  font-weight: 900;
+  color: white;
+}
+
+.freezer-lid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.freezer-panel {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 26px;
+  height: 18px;
+  border-radius: 3px;
+  background: rgba(2, 6, 23, 0.65);
+}
+
+.washer {
+  border-radius: 14px;
+  height: 170px;
+}
+
+.washer-door {
+  position: absolute;
+  left: 22px;
+  top: 54px;
+  width: 68px;
+  height: 68px;
+  border: 8px solid rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.washer-panel {
+  position: absolute;
+  right: 12px;
+  top: 18px;
+  width: 36px;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.ac-wrap,
+.microwave-wrap,
+.fan-wrap {
+  height: 170px;
+}
+
+.ac {
+  width: 170px;
+  height: 58px;
+  border-radius: 12px;
+  box-shadow: 0 18px 28px rgba(15, 23, 42, 0.14);
+}
+
+.ac::before,
+.microwave::before {
+  content: "VISION";
+  position: absolute;
+  left: 16px;
+  top: 14px;
+  font-size: 8px;
+  font-weight: 900;
+  color: white;
+}
+
+.ac-vent {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 12px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.microwave {
+  position: absolute;
+  bottom: 50px;
+  width: 160px;
+  height: 88px;
+  border-radius: 12px;
+  box-shadow: 0 18px 28px rgba(15, 23, 42, 0.14);
+}
+
+.microwave-window {
+  position: absolute;
+  left: 16px;
+  top: 28px;
+  width: 88px;
+  height: 42px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.microwave-dials {
+  position: absolute;
+  right: 16px;
+  top: 28px;
+  width: 26px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.fan-head {
+  position: absolute;
+  top: 16px;
+  width: 105px;
+  height: 105px;
+  border-radius: 999px;
+  box-shadow: 0 16px 26px rgba(15, 23, 42, 0.16);
+}
+
+.fan-head::before {
+  content: "";
+  position: absolute;
+  inset: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+}
+
+.fan-blade {
+  position: absolute;
+  left: 47px;
+  top: 18px;
+  width: 12px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  transform-origin: 6px 34px;
+}
+
+.blade-two {
+  transform: rotate(120deg);
+}
+
+.blade-three {
+  transform: rotate(240deg);
+}
+
+.fan-stand {
+  position: absolute;
+  bottom: 28px;
+  width: 12px;
+  height: 58px;
+  background: #334155;
+}
+
+@layer components {
+  .container-custom {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn-primary {
+    @apply rounded-md bg-vision-blue px-6 py-3 font-bold text-white shadow-sm shadow-cyan-900/10 transition hover:bg-vision-dark;
+  }
+
+  .btn-secondary {
+    @apply rounded-md border border-cyan-200 bg-white px-6 py-3 font-bold text-vision-dark transition hover:border-cyan-400 hover:text-vision-blue;
+  }
+
+  .section-kicker {
+    @apply mb-2 text-xs font-black uppercase tracking-[0.25em] text-vision-blue;
+  }
+
+  .section-title {
+    @apply text-3xl font-black uppercase tracking-normal text-slate-950 md:text-4xl;
+  }
+
+  .form-input {
+    @apply w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-swiper .swiper-pagination {
+    bottom: 8px;
+  }
+
+  .hero-banner {
+    aspect-ratio: 1600 / 625;
+    max-height: none;
+  }
+
+  .hero-banner::after {
+    display: none;
+  }
+
+  .hero-banner img {
+    object-fit: contain;
+  }
+
+  .hero-copy,
+  .hero-copy-right {
+    display: none;
+  }
+
+  .hero-copy p {
+    margin-bottom: 8px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+  }
+
+  .hero-copy h1 {
+    max-width: 12ch;
+    font-size: 34px;
+    line-height: 0.98;
+  }
+
+  .hero-copy span {
+    max-width: 310px;
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+}
